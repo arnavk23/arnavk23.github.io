@@ -5,7 +5,7 @@
       xmlns:dc="http://purl.org/dc/elements/1.1/" 
       version="2.0">
 <channel>
-<title>Arnav Kapoor</title>
+<title>arnavk23</title>
 <link>https://arnavk23.github.io/blogs.html</link>
 <atom:link href="https://arnavk23.github.io/blogs.xml" rel="self" type="application/rss+xml"/>
 <description>Computer Science at IISER Bhopal. Quantum information, optimization in Julia, and the Linux kernel.</description>

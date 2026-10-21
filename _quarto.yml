@@ -3,11 +3,13 @@ project:
   output-dir: docs
 
 website:
-  title: "Arnav Kapoor"
+  title: "arnavk23"
+  favicon: favicon.svg
   draft-mode: unlinked
   site-url: https://arnavk23.github.io
   description: "Computer Science at IISER Bhopal. Quantum information, optimization in Julia, and the Linux kernel."
   navbar:
+    title: "Arnav Kapoor"
     left:
       - href: index.qmd
         text: Home

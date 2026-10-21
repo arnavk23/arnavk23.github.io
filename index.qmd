@@ -1,5 +1,6 @@
 ---
 title: "Arnav Kapoor"
+pagetitle: "arnavk23"
 subtitle: "Quantum Information & Entanglement Distillation Research"
 toc: false
 image: https://avatars.githubusercontent.com/u/169632461?v=4
