@@ -99,7 +99,7 @@
 
 /* Home page: photo column takes about a quarter, text the rest */
 @media (min-width: 992px) {
-  .quarto-about-trestles .about-entity {
-    flex: 0 0 25%;
+  div.quarto-about-trestles .about-entity {
+    flex: 0 0 25% !important;
   }
 }
