@@ -1,0 +1,108 @@
+---
+title: "Experience"
+---
+
+## Summer Research Intern, Quantum Convolutional Codes
+
+**University of Massachusetts Amherst**, Center for Quantum Networks · Remote · Jun 2026 – present
+
+Advisors: Dr. Filip Rozpedek and Dr. Stefan Krastanov.
+
+- Quantum convolutional codes within the stabilizer formalism
+- Entanglement purification and distillation protocols using convolutional quantum codes
+- Simulation of quantum repeater protocols under realistic noisy hardware
+- Open-source tools for quantum error correction in Julia
+
+## Research Collaborator, NCL.jl
+
+**Polytechnique Montréal** · Remote · Aug 2026 – present
+
+[NCL.jl](https://github.com/JuliaSmoothOptimizers/NCL.jl) implements a stabilized
+augmented-Lagrangian method that reformulates LANCELOT-style subproblems as a short
+sequence of nonlinearly constrained problems regularized by residual variables. This
+makes it reliable on large problems that violate the LICQ. I am developing an NCL-like
+outer-loop implementation of the Superb algorithm (Gould–Orban–Toint, 2003), an
+interior-point ℓ₁-penalty method.
+
+## Research Intern, JuliaSmoothOptimizers
+
+**Polytechnique Montréal** · Remote · Feb 2026 – Jul 2026
+
+Advisor: Prof. Dominique Orban (Department of Applied Mathematics).
+
+Translated classical optimization problems into JuMP and ADNLPModels for
+[OptimizationProblems.jl](https://github.com/JuliaSmoothOptimizers/OptimizationProblems.jl),
+documented their mathematical formulations and the contributing guidelines, and added
+dimension-modification warnings, type corrections and tests. Contributed pull requests
+across the JSO ecosystem.
+
+## Teaching Assistant, Data Structures and Algorithms
+
+**IISER Bhopal** · Aug 2026 – present
+
+DSE255/ECS202/ECS225 under Dr. Pawan Kumar Aurora (Department of Electrical
+Engineering and Computer Science).
+
+## Research Contributor, Q-MAML for HEP at the LHC
+
+**Machine Learning for Science (ML4SCI)** · Remote · Aug 2026 – present
+
+Advisor: Junyong Lee (Yonsei University).
+
+Q-MAML (Quantum Model-Agnostic Meta-Learning) uses a classical "Learner" network to
+predict initial parameters for variational quantum circuits. Applied to HIGGS and
+quark–gluon jet classification, it gave statistically significant accuracy gains over
+classical initialization at every qubit count tested. I am now benchmarking it on ten
+HEP lattice Hamiltonians, including the Schwinger model, lattice gauge theories,
+scalar field theory and light-nuclei EFT.
+
+## QIntern, QiOpt4QNet
+
+**QWorld** · Remote · Jul 2026 – Aug 2026
+
+Mentors: Krishna Bhatia and Shalini Devendrababu.
+
+Hybrid quantum-inspired optimization for fidelity-constrained entanglement routing and
+memory scheduling in quantum networks (project Q23, presented at the QIntern Workshop).
+See [QiOpt4QNet-Simulator](software.qmd#qiopt4qnet-simulator).
+
+## Summer Research Intern, Quantum Fisher Information
+
+**Mahindra University** · Hyderabad · Jun 2026 – Jul 2026
+
+Advisor: Dr. Naga Deepthi (Department of Physics).
+
+Quantum Fisher information bounds on CP-phase sensitivity in long-baseline neutrino
+experiments (T2K, NOvA), and groundwork on neutrino decoherence under scalar
+non-standard interactions.
+
+## LFX Mentee, Linux Kernel
+
+**The Linux Foundation** · Remote · Aug 2025 – Nov 2025
+
+Linux Kernel Bug Fixing Mentorship with Shuah Khan. Nine patches applied upstream in
+the IIO subsystem and in networking (sfc), including fixes for truncated 64-bit
+divisions in scmi_sensors and for wrong magnetometer scales and swapped startup times
+in inv_mpu6050.
+
+## Summer Intern, GeoAI4Cities Lab
+
+**IISER Bhopal** · Jun 2025 – Jul 2025
+
+Advisor: Dr. Vaibhav Kumar (Department of Data Science and Engineering).
+
+Deployed a semantic segmentation model for ZED 2i point clouds on an NVIDIA Jetson Orin.
+
+# Education
+
+## IISER Bhopal
+
+BS in Computer Science · Aug 2023 – Aug 2027
+
+Organizing team, Luminaire'24 and Singularity'24; student volunteer, Institute Day'24.
+
+## Army Public School
+
+Senior High School (CBSE), Science · 2016 – 2023
+
+95.6% in Class XII, 94.2% in Class X.

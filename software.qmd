@@ -1,0 +1,48 @@
+---
+title: "Software"
+---
+
+Open-source packages I am a collaborator on.
+
+## [Superb.jl](https://github.com/JuliaSmoothOptimizers/Superb.jl)
+
+A Julia implementation of Superb (Gould–Orban–Toint, 2003), an interior-point
+ℓ₁-penalty method for nonlinear optimization, built NCL-style on the
+[JuliaSmoothOptimizers](https://jso.dev) ecosystem. I am its most active contributor:
+I added Ipopt, MadNLP and Knitro subsolvers, NLPModels derivative and dimension tests,
+and support for Julia LTS.
+
+## [Qiskit.jl](https://github.com/Qiskit/Qiskit.jl)
+
+Julia bindings for [Qiskit](https://www.ibm.com/quantum/qiskit) through its C API.
+I added a `TranspileOptions` wrapper, `add_instruction` and `add_property` on `Target`,
+a `delay` method on `QuantumCircuit` with [Unitful.jl](https://github.com/PainterQubits/Unitful.jl)
+units, readable `show` methods for wrapped C objects, and minimum-version testing of
+dependencies, and fixed memory cleanup in `count_ops`.
+
+## [TagBot](https://github.com/JuliaRegistries/TagBot)
+
+The GitHub Action that creates tags, releases and changelogs for Julia packages when
+they are registered, used across the Julia ecosystem. I have had over 20 pull requests
+merged, including changelog support for backport and yanked releases, a
+`changelog_format` option, correct handling of Registrator branches and subdirectory
+packages, case-insensitive registry lookups, and clearer error handling for rate limits,
+permissions and malformed TOML.
+
+## [Annie](https://github.com/Programmers-Paradise/Annie)
+
+A fast, Rust-powered brute-force k-NN library for Python, with batch queries, thread
+safety, on-disk persistence and HNSW integration. I am the top contributor, with work on
+metadata-aware filtering and typed predicate pushdown, memory safety in the GPU backend,
+a path-traversal fix, and the CI and release pipeline. I also maintain its documentation
+site, [Annie-Docs](https://annie-docs.netlify.app/).
+
+## [QiOpt4QNet-Simulator](https://github.com/Sguy1908/QiOpt4QNet-Simulator)
+
+A quantum-network simulation and optimization framework. It models repeater networks with
+limited quantum memory and noisy links, builds candidate route and purification bundles
+for service requests, and compares exact MILP, QUBO and quantum annealing,
+tensor-network and classical heuristic solvers for admitting them. I am the top
+contributor: I added the Metropolis annealer and tensor-network optimizer, a
+conflict-aware purification scheduler, joint scheduling, adaptive-QUBO and GNN
+extensions, and the CI setup.

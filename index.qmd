@@ -1,0 +1,39 @@
+---
+title: "Arnav Kapoor"
+subtitle: "Quantum Information & Entanglement Distillation Research"
+toc: false
+image: https://avatars.githubusercontent.com/u/169632461?v=4
+about:
+  template: trestles
+  image-shape: round
+  image-width: 14em
+  links:
+    - icon: github
+      text: GitHub
+      href: https://github.com/arnavk23
+    - icon: linkedin
+      text: LinkedIn
+      href: https://www.linkedin.com/in/arnav-kapoor-29033b2b6/
+---
+
+I am a Computer Science undergraduate at [IISER Bhopal](https://www.iiserb.ac.in/) (BS, 2023–2027).
+I work on quantum information, in particular quantum convolutional codes and
+entanglement distillation, and on numerical optimization software in Julia.
+
+I am currently a research intern on quantum convolutional codes with
+Dr. Filip Rozpedek and Dr. Stefan Krastanov at the University of Massachusetts Amherst, and I collaborate with
+Prof. Dominique Orban at Polytechnique Montréal on [NCL.jl](https://github.com/JuliaSmoothOptimizers/NCL.jl)
+and [Superb.jl](https://github.com/JuliaSmoothOptimizers/Superb.jl).
+I am also a contributor to [Qiskit.jl](https://github.com/Qiskit/Qiskit.jl) and
+[TagBot](https://github.com/JuliaRegistries/TagBot), and an LFX mentee in the Linux kernel.
+
+## Interests
+
+- Quantum error correction and entanglement distillation
+- Quantum networks and repeater protocols
+- Nonlinear constrained optimization
+- Open-source scientific software
+
+## Education
+
+**IISER Bhopal**, BS in Computer Science, Aug 2023 – Aug 2027

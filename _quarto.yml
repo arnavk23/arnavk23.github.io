@@ -1,0 +1,40 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "Arnav Kapoor"
+  site-url: https://arnavk23.github.io
+  description: "Computer Science at IISER Bhopal. Quantum information, optimization in Julia, and the Linux kernel."
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: experience.qmd
+        text: Experience
+      - href: software.qmd
+        text: Software
+      - href: blogs.qmd
+        text: Blogs
+      - href: recommendations.qmd
+        text: Recommendations
+    right:
+      - icon: github
+        href: https://github.com/arnavk23
+        aria-label: GitHub
+      - icon: linkedin
+        href: https://www.linkedin.com/in/arnav-kapoor-29033b2b6/
+        aria-label: LinkedIn
+      - icon: rss
+        href: blogs.xml
+        aria-label: RSS feed
+  page-footer:
+    center: "© Arnav Kapoor, 2026"
+
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly
+    css: styles.css
+    toc: true
