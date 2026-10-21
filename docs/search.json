@@ -67,7 +67,7 @@
     "href": "recommendations.html",
     "title": "Recommendations",
     "section": "",
-    "text": "No matching items"
+    "text": "Benny, on Julia Discourse · December 2025\nWorld Age for beginners\nHow a dynamic language gets to compile anyway, explained from the question every newcomer asks.\nRead my notes\n\n\n\n\n\n\nAdrian Hill, Guillaume Dalle, Alexis Montoison · April 2025\nAn Illustrated Guide to Automatic Sparse Differentiation\nWhy most of the Jacobian you compute is zeros, and how to stop computing them.\nRead my notes\n\n\n\n\n\n\nBarbara M. Terhal, Michael M. Wolf, Andrew C. Doherty · January 2025\nQuantum entanglement: A modern perspective\nEntanglement as something you can measure, spend, dilute and distill.\nRead my notes\n\n\n\n\n\n\nThe Julia Community · February 2022\nWhy We Use Julia, 10 Years Later\nAbout a hundred short stories of how people found Julia, and why they stayed.\nRead my notes\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "posts/2026-10-22-lfx-kernel-mentorship/index.html",
@@ -147,18 +147,39 @@
     "text": "Acknowledgements\nI am grateful to Shuah Khan for running the mentorship, and to everyone who reviewed my work: Jonathan Cameron, Andy Shevchenko, Jean-Baptiste Maneyrol, Joshua Crofts, Nuno Sá, Maxwell Doose, Tzung-Bi Shih, Simon Horman, Alex Austin, Paolo Abeni and Geert Uytterhoeven. Each of these patches is better because of them."
   },
   {
+    "objectID": "recommendations/2022-02-14-julia-10-years/index.html",
+    "href": "recommendations/2022-02-14-julia-10-years/index.html",
+    "title": "Why We Use Julia, 10 Years Later",
+    "section": "",
+    "text": "Ten years after the original “Why We Created Julia” post, the Julia blog asked its community to write back. About a hundred people did, each with a short, signed note. Most of them start the same way: someone tired of prototyping in Python or MATLAB and then rewriting the slow parts in C, who tried Julia out of curiosity and never left. There is an R job that went from eighteen hours to five minutes, and code running on aircraft collision-avoidance systems and lunar missions.\nWhat I liked most is how often the story turns on a first pull request. Someone fixes a small thing, gets a careful review or a thumbs-up from a core developer, and a few years later is the one reviewing. That matched my own start in the Julia world, through JuliaSmoothOptimizers, TagBot and Qiskit.jl, closely enough that reading it felt a little like reading about people I already knew.\nWhy We Use Julia, 10 Years Later, The Julia Blog."
+  },
+  {
+    "objectID": "recommendations/2025-01-01-entanglement-modern-perspective/index.html",
+    "href": "recommendations/2025-01-01-entanglement-modern-perspective/index.html",
+    "title": "Quantum entanglement: A modern perspective",
+    "section": "",
+    "text": "This first appeared in Physics Today in April 2003, and the magazine brought it back in its archive series. I read it while starting my work on entanglement purification, and it was the first time the subject felt like one story rather than a list of results. It goes from Schrödinger’s cat and Bell’s inequalities to the modern view, where entanglement is a resource you can count, spend and move around.\nThe part I keep coming back to is the difference between how many perfect pairs it costs to make a noisy state and how many you can distill back out of it. For mixed states the second can be smaller, and for some states it is zero even though they are entangled, which the authors call the black holes of quantum information. Much of what I now work on, from purification protocols to scheduling in quantum networks, sits in that gap.\nQuantum entanglement: A modern perspective, Physics Today."
+  },
+  {
+    "objectID": "recommendations/2025-04-28-sparse-autodiff/index.html",
+    "href": "recommendations/2025-04-28-sparse-autodiff/index.html",
+    "title": "An Illustrated Guide to Automatic Sparse Differentiation",
+    "section": "",
+    "text": "I found this while working on JuliaSmoothOptimizers, where every solver quietly asks for a sparse Jacobian or Hessian and I had never really asked how it gets one. One of the authors, Alexis Montoison, works in the same ecosystem, and the post reads like someone patiently answering that exact question. It starts from the chain rule, and the figure of a small convolution’s Jacobian, almost entirely empty, made the problem obvious before any equation did.\nThe idea that stayed with me is that two columns which never share a nonzero row can be computed together in one pass, and then pulled apart again. Finding which columns can share turns into a graph-coloring problem, and the Hessian version borrows its tricks from Powell, Toint, Coleman and Moré in the 1970s and 80s, long before machine learning cared. The authors are also careful to say when none of this pays off, which I appreciated more than the speedups.\nAn Illustrated Guide to Automatic Sparse Differentiation, ICLR 2025 Blogposts."
+  },
+  {
+    "objectID": "recommendations/2025-12-06-world-age/index.html",
+    "href": "recommendations/2025-12-06-world-age/index.html",
+    "title": "World Age for beginners",
+    "section": "",
+    "text": "For a long time “world age” was, to me, just the name of an error I got when I used eval inside a function and then tried to call what I had defined. The manual calls it an advanced topic most people never need, so I never looked further. This Discourse post changed that. It starts from a simpler question, why dynamic languages are usually slow, and only names world age once you already understand the problem it solves.\nThe point is that a compiler can only optimize what it can assume. Julia lets you redefine almost anything, so it promises one thing in return: a running call keeps seeing the world as it was when it started, and new definitions show up on the next call. That single rule lets Julia compile and cache code ahead of each call, and it explains why invokelatest exists. If you want the formal version, the post points to Belyakova et al. (OOPSLA 2020).\nWorld Age for beginners: one way to compile a dynamic language, Julia Discourse."
+  },
+  {
     "objectID": "index.html",
     "href": "index.html",
     "title": "Arnav Kapoor",
     "section": "",
-    "text": "I am a Computer Science undergraduate at IISER Bhopal (BS, 2023–2027). I work on quantum information, in particular quantum convolutional codes and entanglement distillation, and on numerical optimization software in Julia.\nI am currently a research intern on quantum convolutional codes with Dr. Filip Rozpedek and Dr. Stefan Krastanov at the University of Massachusetts Amherst, and I collaborate with Prof. Dominique Orban at Polytechnique Montréal on NCL.jl. I am also a contributor to Qiskit.jl and TagBot, and an LFX mentee in the Linux kernel."
-  },
-  {
-    "objectID": "index.html#interests",
-    "href": "index.html#interests",
-    "title": "Arnav Kapoor",
-    "section": "Interests",
-    "text": "Interests\n\nQuantum error correction and entanglement distillation\nQuantum networks and repeater protocols\nNonlinear constrained optimization\nOpen-source scientific software"
+    "text": "I am a fourth-year Computer Science major at the Indian Institute of Science Education and Research Bhopal. I work on the problem of making entanglement reliable enough to build real quantum networks, and on the broader question of how mathematical structure should guide algorithm design.\nI am currently a Summer Research Intern at UMass Amherst with the Centre for Quantum Networks, advised by Dr. Filip Rozpedek and Dr. Stefan Krastanov. There I implement quantum convolutional codes, entanglement purification protocols, and quantum repeater simulations under realistic hardware noise in QuantumClifford.jl and QuantumSavory.jl.\nIn parallel, I am a research intern with Prof. Dominique Orban’s group at Polytechnique Montréal (JuliaSmoothOptimizers), translating classical smooth and non-smooth optimization problems into structured Julia formulations (JuMP, ADNLPModels) for OptimizationProblems.jl.\nEarlier research includes:\nContact: arnavkapoor23@iiserb.ac.in"
   },
   {
     "objectID": "index.html#education",

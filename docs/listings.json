@@ -1,7 +1,12 @@
 [
   {
     "listing": "/recommendations.html",
-    "items": []
+    "items": [
+      "/recommendations/2025-12-06-world-age/index.html",
+      "/recommendations/2025-04-28-sparse-autodiff/index.html",
+      "/recommendations/2025-01-01-entanglement-modern-perspective/index.html",
+      "/recommendations/2022-02-14-julia-10-years/index.html"
+    ]
   },
   {
     "listing": "/blogs.html",

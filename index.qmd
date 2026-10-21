@@ -6,7 +6,7 @@ image: https://avatars.githubusercontent.com/u/169632461?v=4
 about:
   template: trestles
   image-shape: round
-  image-width: 14em
+  image-width: 10em
   links:
     - icon: github
       text: GitHub
@@ -16,22 +16,30 @@ about:
       href: https://www.linkedin.com/in/arnav-kapoor-29033b2b6/
 ---
 
-I am a Computer Science undergraduate at IISER Bhopal (BS, 2023–2027).
-I work on quantum information, in particular quantum convolutional codes and
-entanglement distillation, and on numerical optimization software in Julia.
+I am a fourth-year Computer Science major at the Indian Institute of Science Education and
+Research Bhopal. I work on the problem of making entanglement reliable enough to build real
+quantum networks, and on the broader question of how mathematical structure should guide
+algorithm design.
 
-I am currently a research intern on quantum convolutional codes with
-Dr. Filip Rozpedek and Dr. Stefan Krastanov at the University of Massachusetts Amherst, and I collaborate with
-Prof. Dominique Orban at Polytechnique Montréal on [NCL.jl](https://github.com/JuliaSmoothOptimizers/NCL.jl).
-I am also a contributor to [Qiskit.jl](https://github.com/Qiskit/Qiskit.jl) and
-[TagBot](https://github.com/JuliaRegistries/TagBot), and an LFX mentee in the Linux kernel.
+I am currently a Summer Research Intern at UMass Amherst with the Centre for Quantum
+Networks, advised by Dr. Filip Rozpedek and Dr. Stefan Krastanov. There I implement quantum
+convolutional codes, entanglement purification protocols, and quantum repeater simulations
+under realistic hardware noise in [QuantumClifford.jl](https://github.com/QuantumSavory/QuantumClifford.jl)
+and [QuantumSavory.jl](https://github.com/QuantumSavory/QuantumSavory.jl).
 
-## Interests
+In parallel, I am a research intern with Prof. Dominique Orban's group at Polytechnique
+Montréal ([JuliaSmoothOptimizers](https://jso.dev)), translating classical smooth and
+non-smooth optimization problems into structured Julia formulations (JuMP, ADNLPModels) for
+[OptimizationProblems.jl](https://github.com/JuliaSmoothOptimizers/OptimizationProblems.jl).
 
-- Quantum error correction and entanglement distillation
-- Quantum networks and repeater protocols
-- Nonlinear constrained optimization
-- Open-source scientific software
+Earlier research includes:
+
+- Quantum Fisher information bounds on CP-phase sensitivity in long-baseline neutrino
+  experiments (T2K, NOvA) with Dr. Naga Deepthi at Mahindra University
+- Hybrid quantum-inspired optimization for fidelity-constrained entanglement routing and
+  memory scheduling, as a QWorld QIntern
+
+Contact: [arnavkapoor23@iiserb.ac.in](mailto:arnavkapoor23@iiserb.ac.in)
 
 ## Education
 

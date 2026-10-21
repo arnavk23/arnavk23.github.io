@@ -1,0 +1,27 @@
+---
+title: "An Illustrated Guide to Automatic Sparse Differentiation"
+author: "Adrian Hill, Guillaume Dalle, Alexis Montoison"
+date: 2025-04-28
+description: "Why most of the Jacobian you compute is zeros, and how to stop computing them."
+image: https://iclr-blogposts.github.io/2025/assets/img/2025-04-28-sparse-autodiff/forward_mode_naive.svg
+link-text: "Read on ICLR Blogposts"
+source: https://iclr-blogposts.github.io/2025/blog/sparse-autodiff/
+categories: [automatic-differentiation, optimization, julia]
+---
+
+I found this while working on [JuliaSmoothOptimizers](https://jso.dev), where every solver
+quietly asks for a sparse Jacobian or Hessian and I had never really asked how it gets one.
+One of the authors, Alexis Montoison, works in the same ecosystem, and the post reads like
+someone patiently answering that exact question. It starts from the chain rule, and the
+figure of a small convolution's Jacobian, almost entirely empty, made the problem obvious
+before any equation did.
+
+The idea that stayed with me is that two columns which never share a nonzero row can be
+computed together in one pass, and then pulled apart again. Finding which columns can share
+turns into a graph-coloring problem, and the Hessian version borrows its tricks from Powell,
+Toint, Coleman and Moré in the 1970s and 80s, long before machine learning cared. The
+authors are also careful to say when none of this pays off, which I appreciated more than
+the speedups.
+
+[An Illustrated Guide to Automatic Sparse Differentiation](https://iclr-blogposts.github.io/2025/blog/sparse-autodiff/),
+ICLR 2025 Blogposts.

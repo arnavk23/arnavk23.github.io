@@ -1,0 +1,25 @@
+---
+title: "Quantum entanglement: A modern perspective"
+author: "Barbara M. Terhal, Michael M. Wolf, Andrew C. Doherty"
+date: 2025-01-01
+description: "Entanglement as something you can measure, spend, dilute and distill."
+image: https://aip.brightspotcdn.com/PTO.v78.i1.40_1.highlight_f1.png
+link-text: "Read in Physics Today"
+source: https://physicstoday.aip.org/news/quantum-entanglement-a-modern-perspective
+categories: [quantum-information, entanglement]
+---
+
+This first appeared in *Physics Today* in April 2003, and the magazine brought it back in
+its archive series. I read it while starting my work on entanglement purification, and it
+was the first time the subject felt like one story rather than a list of results. It goes
+from Schrödinger's cat and Bell's inequalities to the modern view, where entanglement is a
+resource you can count, spend and move around.
+
+The part I keep coming back to is the difference between how many perfect pairs it costs to
+make a noisy state and how many you can distill back out of it. For mixed states the second
+can be smaller, and for some states it is zero even though they are entangled, which the
+authors call the black holes of quantum information. Much of what I now work on, from
+purification protocols to scheduling in quantum networks, sits in that gap.
+
+[Quantum entanglement: A modern perspective](https://physicstoday.aip.org/news/quantum-entanglement-a-modern-perspective),
+*Physics Today*.

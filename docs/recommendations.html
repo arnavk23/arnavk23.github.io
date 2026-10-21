@@ -89,9 +89,9 @@ ul.task-list li input[type="checkbox"] {
     }
 
     const options = {
-      valueNames: ['listing-date','listing-title','listing-author','listing-description',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
+      valueNames: ['listing-project','listing-website','listing-format','listing-engines','listing-language','listing-draft-mode','listing-title','listing-author','listing-date','listing-description','listing-image','listing-link-text','listing-source','listing-categories','listing-path','listing-outputHref','listing-date-modified','listing-filename','listing-file-modified','listing-reading-time','listing-word-count',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-date-modified-sort'] },{ data: ['listing-file-modified-sort'] },{ data: ['listing-reading-time-sort'] },{ data: ['listing-word-count-sort'] }],
       
-      searchColumns: [],
+      searchColumns: ["listing-project","listing-website","listing-format","listing-engines","listing-language","listing-draft-mode","listing-title","listing-author","listing-date","listing-description","listing-image","listing-link-text","listing-source","listing-categories","listing-path","listing-outputHref","listing-date-modified","listing-filename","listing-file-modified","listing-reading-time","listing-word-count"],
     };
 
     window['quarto-listings'] = window['quarto-listings'] || {};
@@ -378,6 +378,7 @@ window.Quarto = {
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">Recommendations</h1>
+<p class="subtitle lead">Things I have read and keep coming back to.</p>
 </div>
 
 
@@ -394,25 +395,52 @@ window.Quarto = {
 </header>
 
 
-<!--
-Add one recommendation per file in recommendations/, for example
-recommendations/2026-11-01-jane-doe.qmd:
-
----
-title: "Jane Doe, Professor, University"
-author: "Jane Doe"
-date: 2026-11-01
-description: "Relationship, e.g. research advisor"
----
-
-Recommendation text.
--->
 
 
 
 
-<div class="quarto-listing quarto-listing-container-default" id="listing-listing">
-<div class="list quarto-listing-default">
+<div class="quarto-listing quarto-listing-container-custom" id="listing-listing">
+<div class="rec-list">
+
+<a class="rec-card" href="./recommendations/2025-12-06-world-age/index.html" data-index="0" data-categories="anVsaWElMkNjb21waWxlcnM=" data-listing-date-sort="1764959400000" data-listing-file-modified-sort="1792612929216" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="162">
+<div class="rec-image"><img src="https://global.discourse-cdn.com/julialang/original/3X/4/d/4d76a1d8062ed9397f2f00f22abdd69926b51785.png" alt="" loading="lazy"></div>
+<div class="rec-text">
+<div class="rec-meta">Benny, on Julia Discourse · December 2025</div>
+<h3 class="anchored">World Age for beginners</h3>
+<p>How a dynamic language gets to compile anyway, explained from the question every newcomer asks.</p>
+<span class="rec-more">Read my notes</span>
+</div>
+</a>
+
+<a class="rec-card" href="./recommendations/2025-04-28-sparse-autodiff/index.html" data-index="1" data-categories="YXV0b21hdGljLWRpZmZlcmVudGlhdGlvbiUyQ29wdGltaXphdGlvbiUyQ2p1bGlh" data-listing-date-sort="1745778600000" data-listing-file-modified-sort="1792613485004" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="153">
+<div class="rec-image"><img src="https://iclr-blogposts.github.io/2025/assets/img/2025-04-28-sparse-autodiff/forward_mode_naive.svg" alt="" loading="lazy"></div>
+<div class="rec-text">
+<div class="rec-meta">Adrian Hill, Guillaume Dalle, Alexis Montoison · April 2025</div>
+<h3 class="anchored">An Illustrated Guide to Automatic Sparse Differentiation</h3>
+<p>Why most of the Jacobian you compute is zeros, and how to stop computing them.</p>
+<span class="rec-more">Read my notes</span>
+</div>
+</a>
+
+<a class="rec-card" href="./recommendations/2025-01-01-entanglement-modern-perspective/index.html" data-index="2" data-categories="cXVhbnR1bS1pbmZvcm1hdGlvbiUyQ2VudGFuZ2xlbWVudA==" data-listing-date-sort="1735669800000" data-listing-file-modified-sort="1792612929403" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="148">
+<div class="rec-image"><img src="https://aip.brightspotcdn.com/PTO.v78.i1.40_1.highlight_f1.png" alt="" loading="lazy"></div>
+<div class="rec-text">
+<div class="rec-meta">Barbara M. Terhal, Michael M. Wolf, Andrew C. Doherty · January 2025</div>
+<h3 class="anchored">Quantum entanglement: A modern perspective</h3>
+<p>Entanglement as something you can measure, spend, dilute and distill.</p>
+<span class="rec-more">Read my notes</span>
+</div>
+</a>
+
+<a class="rec-card" href="./recommendations/2022-02-14-julia-10-years/index.html" data-index="3" data-categories="anVsaWElMkNvcGVuLXNvdXJjZSUyQ2NvbW11bml0eQ==" data-listing-date-sort="1644777000000" data-listing-file-modified-sort="1792612929524" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="151">
+<div class="rec-image"><img src="https://user-images.githubusercontent.com/35577566/153917389-f9e3cbbf-8c14-47f7-a8ae-a3dcbd60f4a8.png" alt="" loading="lazy"></div>
+<div class="rec-text">
+<div class="rec-meta">The Julia Community · February 2022</div>
+<h3 class="anchored">Why We Use Julia, 10 Years Later</h3>
+<p>About a hundred short stories of how people found Julia, and why they stayed.</p>
+<span class="rec-more">Read my notes</span>
+</div>
+</a>
 
 </div>
 <div class="listing-no-matching d-none">No matching items</div>

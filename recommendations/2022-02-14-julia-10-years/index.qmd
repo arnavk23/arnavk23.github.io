@@ -1,0 +1,27 @@
+---
+title: "Why We Use Julia, 10 Years Later"
+author: "The Julia Community"
+date: 2022-02-14
+description: "About a hundred short stories of how people found Julia, and why they stayed."
+image: https://user-images.githubusercontent.com/35577566/153917389-f9e3cbbf-8c14-47f7-a8ae-a3dcbd60f4a8.png
+link-text: "Read on the Julia blog"
+source: https://julialang.org/blog/2022/02/10years/
+categories: [julia, open-source, community]
+---
+
+Ten years after the original
+["Why We Created Julia"](https://julialang.org/blog/2012/02/why-we-created-julia/) post,
+the Julia blog asked its community to write back. About a hundred people did, each with a
+short, signed note. Most of them start the same way: someone tired of prototyping in Python
+or MATLAB and then rewriting the slow parts in C, who tried Julia out of curiosity and never
+left. There is an R job that went from eighteen hours to five minutes, and code running on
+aircraft collision-avoidance systems and lunar missions.
+
+What I liked most is how often the story turns on a first pull request. Someone fixes a small
+thing, gets a careful review or a thumbs-up from a core developer, and a few years later is
+the one reviewing. That matched my own start in the Julia world, through JuliaSmoothOptimizers,
+TagBot and Qiskit.jl, closely enough that reading it felt a little like reading about people
+I already knew.
+
+[Why We Use Julia, 10 Years Later](https://julialang.org/blog/2022/02/10years/), The Julia
+Blog.

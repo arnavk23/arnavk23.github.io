@@ -1,23 +1,11 @@
 ---
 title: "Recommendations"
+subtitle: "Things I have read and keep coming back to."
 listing:
   contents: recommendations
   sort: "date desc"
-  type: default
-  fields: [date, title, author, description]
+  type: custom
+  template: recommendations.ejs
+  date-format: "MMMM YYYY"
 toc: false
 ---
-
-<!--
-Add one recommendation per file in recommendations/, for example
-recommendations/2026-11-01-jane-doe.qmd:
-
----
-title: "Jane Doe, Professor, University"
-author: "Jane Doe"
-date: 2026-11-01
-description: "Relationship, e.g. research advisor"
----
-
-Recommendation text.
--->

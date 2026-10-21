@@ -1,0 +1,26 @@
+---
+title: "World Age for beginners"
+author: "Benny, on Julia Discourse"
+date: 2025-12-06
+description: "How a dynamic language gets to compile anyway, explained from the question every newcomer asks."
+image: https://global.discourse-cdn.com/julialang/original/3X/4/d/4d76a1d8062ed9397f2f00f22abdd69926b51785.png
+link-text: "Read the thread"
+source: https://discourse.julialang.org/t/world-age-for-beginners-one-way-to-compile-a-dynamic-language/134402
+categories: [julia, compilers]
+---
+
+For a long time "world age" was, to me, just the name of an error I got when I used `eval`
+inside a function and then tried to call what I had defined. The manual calls it an advanced
+topic most people never need, so I never looked further. This Discourse post changed that.
+It starts from a simpler question, why dynamic languages are usually slow, and only names
+world age once you already understand the problem it solves.
+
+The point is that a compiler can only optimize what it can assume. Julia lets you redefine
+almost anything, so it promises one thing in return: a running call keeps seeing the world
+as it was when it started, and new definitions show up on the next call. That single rule
+lets Julia compile and cache code ahead of each call, and it explains why
+`invokelatest` exists. If you want the formal version, the post points to
+[Belyakova et al. (OOPSLA 2020)](https://doi.org/10.1145/3428275).
+
+[World Age for beginners: one way to compile a dynamic language](https://discourse.julialang.org/t/world-age-for-beginners-one-way-to-compile-a-dynamic-language/134402),
+Julia Discourse.

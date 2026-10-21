@@ -1,0 +1,15 @@
+```{=html}
+<div class="rec-list">
+<% for (const item of items) { %>
+<a class="rec-card" href="<%- item.path %>" <%= metadataAttrs(item) %>>
+<div class="rec-image"><img src="<%- item.image %>" alt="" loading="lazy"></div>
+<div class="rec-text">
+<div class="rec-meta"><%= Array.isArray(item.author) ? item.author.join(", ") : item.author %> · <%= item.date %></div>
+<h3><%= item.title %></h3>
+<p><%= item.description %></p>
+<span class="rec-more">Read my notes</span>
+</div>
+</a>
+<% } %>
+</div>
+```
