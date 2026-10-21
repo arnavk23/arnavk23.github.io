@@ -1,5 +1,5 @@
 ---
-title: "Nine patches, many reviewers: notes from the Linux Kernel Mentorship"
+title: "Learnings from LKMP: How to contribute to the Linux Kernel"
 description: "A technical account of my LFX Linux Kernel Bug Fixing Mentorship: how bugs in the IIO and networking subsystems were found, how review on the mailing list shaped each fix, and what working with kernel maintainers taught me."
 date: 2026-10-22
 draft: false
