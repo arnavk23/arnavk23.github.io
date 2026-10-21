@@ -1,1 +1,8 @@
 /* css styles */
+
+/* Mermaid figures are drawn for a light background; keep them readable in dark mode. */
+pre.mermaid-js {
+  background: #ffffff !important;
+  border-radius: 6px;
+  padding: 0.75rem;
+}
