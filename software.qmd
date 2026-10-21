@@ -4,13 +4,17 @@ title: "Software"
 
 Open-source packages I am a collaborator on.
 
-## [Superb.jl](https://github.com/JuliaSmoothOptimizers/Superb.jl)
+## [NCL.jl](https://github.com/JuliaSmoothOptimizers/NCL.jl)
 
-A Julia implementation of Superb (Gould–Orban–Toint, 2003), an interior-point
-ℓ₁-penalty method for nonlinear optimization, built NCL-style on the
-[JuliaSmoothOptimizers](https://jso.dev) ecosystem. I am its most active contributor:
-I added Ipopt, MadNLP and Knitro subsolvers, NLPModels derivative and dimension tests,
-and support for Julia LTS.
+A pure-Julia implementation of [Algorithm NCL](https://doi.org/10.1007/978-3-319-90026-1_8)
+(Ma, Judd, Orban and Saunders) for nonlinearly constrained optimization, part of the
+[JuliaSmoothOptimizers](https://jso.dev) ecosystem. NCL is a stabilized augmented-Lagrangian
+method that solves a short sequence of subproblems regularized by residual variables, which
+keeps it reliable on problems that violate the LICQ. Its subproblems are solved by
+interior-point methods such as IPOPT, Artelys Knitro and MadNLP. I made the solver
+integrations optional package extensions, added support for maximization problems and
+Julia LTS, made NCL declare infeasibility at the maximum penalty, and tuned how barrier
+parameters are passed to MadNLP and Knitro.
 
 ## [Qiskit.jl](https://github.com/Qiskit/Qiskit.jl)
 

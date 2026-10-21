@@ -22,8 +22,7 @@ entanglement distillation, and on numerical optimization software in Julia.
 
 I am currently a research intern on quantum convolutional codes with
 Dr. Filip Rozpedek and Dr. Stefan Krastanov at the University of Massachusetts Amherst, and I collaborate with
-Prof. Dominique Orban at Polytechnique Montréal on [NCL.jl](https://github.com/JuliaSmoothOptimizers/NCL.jl)
-and [Superb.jl](https://github.com/JuliaSmoothOptimizers/Superb.jl).
+Prof. Dominique Orban at Polytechnique Montréal on [NCL.jl](https://github.com/JuliaSmoothOptimizers/NCL.jl).
 I am also a contributor to [Qiskit.jl](https://github.com/Qiskit/Qiskit.jl) and
 [TagBot](https://github.com/JuliaRegistries/TagBot), and an LFX mentee in the Linux kernel.
 
@@ -36,4 +35,5 @@ I am also a contributor to [Qiskit.jl](https://github.com/Qiskit/Qiskit.jl) and
 
 ## Education
 
-**IISER Bhopal**, BS in Computer Science, Aug 2023 – Aug 2027
+**IISER Bhopal**, BS Computer Science\
+Department of Electrical Engineering and Computer Science

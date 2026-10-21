@@ -4,6 +4,7 @@ project:
 
 website:
   title: "Arnav Kapoor"
+  draft-mode: unlinked
   site-url: https://arnavk23.github.io
   description: "Computer Science at IISER Bhopal. Quantum information, optimization in Julia, and the Linux kernel."
   navbar:

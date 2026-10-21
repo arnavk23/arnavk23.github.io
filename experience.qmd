@@ -20,9 +20,8 @@ Advisors: Dr. Filip Rozpedek and Dr. Stefan Krastanov.
 [NCL.jl](https://github.com/JuliaSmoothOptimizers/NCL.jl) implements a stabilized
 augmented-Lagrangian method that reformulates LANCELOT-style subproblems as a short
 sequence of nonlinearly constrained problems regularized by residual variables. This
-makes it reliable on large problems that violate the LICQ. I am developing an NCL-like
-outer-loop implementation of the Superb algorithm (Gould–Orban–Toint, 2003), an
-interior-point ℓ₁-penalty method.
+makes it reliable on large problems that violate the LICQ. I work on its interior-point
+subsolver integrations (IPOPT, MadNLP and Knitro) and its benchmarks.
 
 ## Research Intern, JuliaSmoothOptimizers
 
@@ -84,11 +83,3 @@ Linux Kernel Bug Fixing Mentorship with Shuah Khan. Nine patches applied upstrea
 the IIO subsystem and in networking (sfc), including fixes for truncated 64-bit
 divisions in scmi_sensors and for wrong magnetometer scales and swapped startup times
 in inv_mpu6050.
-
-## Summer Intern, GeoAI4Cities Lab
-
-**IISER Bhopal**
-
-Advisor: Dr. Vaibhav Kumar (Department of Data Science and Engineering).
-
-Deployed a semantic segmentation model for ZED 2i point clouds on an NVIDIA Jetson Orin.

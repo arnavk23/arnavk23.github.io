@@ -18,7 +18,7 @@
     "href": "experience.html#research-collaborator-ncl.jl",
     "title": "Experience",
     "section": "Research Collaborator, NCL.jl",
-    "text": "Research Collaborator, NCL.jl\nPolytechnique Montréal\nNCL.jl implements a stabilized augmented-Lagrangian method that reformulates LANCELOT-style subproblems as a short sequence of nonlinearly constrained problems regularized by residual variables. This makes it reliable on large problems that violate the LICQ. I am developing an NCL-like outer-loop implementation of the Superb algorithm (Gould–Orban–Toint, 2003), an interior-point ℓ₁-penalty method."
+    "text": "Research Collaborator, NCL.jl\nPolytechnique Montréal\nNCL.jl implements a stabilized augmented-Lagrangian method that reformulates LANCELOT-style subproblems as a short sequence of nonlinearly constrained problems regularized by residual variables. This makes it reliable on large problems that violate the LICQ. I work on its interior-point subsolver integrations (IPOPT, MadNLP and Knitro) and its benchmarks."
   },
   {
     "objectID": "experience.html#research-intern-juliasmoothoptimizers",
@@ -63,13 +63,6 @@
     "text": "LFX Mentee, Linux Kernel\nThe Linux Foundation\nLinux Kernel Bug Fixing Mentorship with Shuah Khan. Nine patches applied upstream in the IIO subsystem and in networking (sfc), including fixes for truncated 64-bit divisions in scmi_sensors and for wrong magnetometer scales and swapped startup times in inv_mpu6050."
   },
   {
-    "objectID": "experience.html#summer-intern-geoai4cities-lab",
-    "href": "experience.html#summer-intern-geoai4cities-lab",
-    "title": "Experience",
-    "section": "Summer Intern, GeoAI4Cities Lab",
-    "text": "Summer Intern, GeoAI4Cities Lab\nIISER Bhopal\nAdvisor: Dr. Vaibhav Kumar (Department of Data Science and Engineering).\nDeployed a semantic segmentation model for ZED 2i point clouds on an NVIDIA Jetson Orin."
-  },
-  {
     "objectID": "recommendations.html",
     "href": "recommendations.html",
     "title": "Recommendations",
@@ -81,7 +74,7 @@
     "href": "index.html",
     "title": "Arnav Kapoor",
     "section": "",
-    "text": "I am a Computer Science undergraduate at IISER Bhopal (BS, 2023–2027). I work on quantum information, in particular quantum convolutional codes and entanglement distillation, and on numerical optimization software in Julia.\nI am currently a research intern on quantum convolutional codes with Dr. Filip Rozpedek and Dr. Stefan Krastanov at the University of Massachusetts Amherst, and I collaborate with Prof. Dominique Orban at Polytechnique Montréal on NCL.jl and Superb.jl. I am also a contributor to Qiskit.jl and TagBot, and an LFX mentee in the Linux kernel."
+    "text": "I am a Computer Science undergraduate at IISER Bhopal (BS, 2023–2027). I work on quantum information, in particular quantum convolutional codes and entanglement distillation, and on numerical optimization software in Julia.\nI am currently a research intern on quantum convolutional codes with Dr. Filip Rozpedek and Dr. Stefan Krastanov at the University of Massachusetts Amherst, and I collaborate with Prof. Dominique Orban at Polytechnique Montréal on NCL.jl. I am also a contributor to Qiskit.jl and TagBot, and an LFX mentee in the Linux kernel."
   },
   {
     "objectID": "index.html#interests",
@@ -95,7 +88,7 @@
     "href": "index.html#education",
     "title": "Arnav Kapoor",
     "section": "Education",
-    "text": "Education\nIISER Bhopal, BS in Computer Science, Aug 2023 – Aug 2027"
+    "text": "Education\nIISER Bhopal, BS Computer Science\nDepartment of Electrical Engineering and Computer Science"
   },
   {
     "objectID": "software.html",
@@ -105,11 +98,11 @@
     "text": "Open-source packages I am a collaborator on."
   },
   {
-    "objectID": "software.html#superb.jl",
-    "href": "software.html#superb.jl",
+    "objectID": "software.html#ncl.jl",
+    "href": "software.html#ncl.jl",
     "title": "Software",
-    "section": "Superb.jl",
-    "text": "Superb.jl\nA Julia implementation of Superb (Gould–Orban–Toint, 2003), an interior-point ℓ₁-penalty method for nonlinear optimization, built NCL-style on the JuliaSmoothOptimizers ecosystem. I am its most active contributor: I added Ipopt, MadNLP and Knitro subsolvers, NLPModels derivative and dimension tests, and support for Julia LTS."
+    "section": "NCL.jl",
+    "text": "NCL.jl\nA pure-Julia implementation of Algorithm NCL (Ma, Judd, Orban and Saunders) for nonlinearly constrained optimization, part of the JuliaSmoothOptimizers ecosystem. NCL is a stabilized augmented-Lagrangian method that solves a short sequence of subproblems regularized by residual variables, which keeps it reliable on problems that violate the LICQ. Its subproblems are solved by interior-point methods such as IPOPT, Artelys Knitro and MadNLP. I made the solver integrations optional package extensions, added support for maximization problems and Julia LTS, made NCL declare infeasibility at the maximum penalty, and tuned how barrier parameters are passed to MadNLP and Knitro."
   },
   {
     "objectID": "software.html#qiskit.jl",

@@ -315,7 +315,7 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#superb.jl" id="toc-superb.jl" class="nav-link active" data-scroll-target="#superb.jl">Superb.jl</a></li>
+  <li><a href="#ncl.jl" id="toc-ncl.jl" class="nav-link active" data-scroll-target="#ncl.jl">NCL.jl</a></li>
   <li><a href="#qiskit.jl" id="toc-qiskit.jl" class="nav-link" data-scroll-target="#qiskit.jl">Qiskit.jl</a></li>
   <li><a href="#tagbot" id="toc-tagbot" class="nav-link" data-scroll-target="#tagbot">TagBot</a></li>
   <li><a href="#qiopt4qnet-simulator" id="toc-qiopt4qnet-simulator" class="nav-link" data-scroll-target="#qiopt4qnet-simulator">QiOpt4QNet-Simulator</a></li>
@@ -346,9 +346,9 @@ ul.task-list li input[type="checkbox"] {
 
 
 <p>Open-source packages I am a collaborator on.</p>
-<section id="superb.jl" class="level2">
-<h2 class="anchored" data-anchor-id="superb.jl"><a href="https://github.com/JuliaSmoothOptimizers/Superb.jl">Superb.jl</a></h2>
-<p>A Julia implementation of Superb (Gould–Orban–Toint, 2003), an interior-point ℓ₁-penalty method for nonlinear optimization, built NCL-style on the <a href="https://jso.dev">JuliaSmoothOptimizers</a> ecosystem. I am its most active contributor: I added Ipopt, MadNLP and Knitro subsolvers, NLPModels derivative and dimension tests, and support for Julia LTS.</p>
+<section id="ncl.jl" class="level2">
+<h2 class="anchored" data-anchor-id="ncl.jl"><a href="https://github.com/JuliaSmoothOptimizers/NCL.jl">NCL.jl</a></h2>
+<p>A pure-Julia implementation of <a href="https://doi.org/10.1007/978-3-319-90026-1_8">Algorithm NCL</a> (Ma, Judd, Orban and Saunders) for nonlinearly constrained optimization, part of the <a href="https://jso.dev">JuliaSmoothOptimizers</a> ecosystem. NCL is a stabilized augmented-Lagrangian method that solves a short sequence of subproblems regularized by residual variables, which keeps it reliable on problems that violate the LICQ. Its subproblems are solved by interior-point methods such as IPOPT, Artelys Knitro and MadNLP. I made the solver integrations optional package extensions, added support for maximization problems and Julia LTS, made NCL declare infeasibility at the maximum penalty, and tuned how barrier parameters are passed to MadNLP and Knitro.</p>
 </section>
 <section id="qiskit.jl" class="level2">
 <h2 class="anchored" data-anchor-id="qiskit.jl"><a href="https://github.com/Qiskit/Qiskit.jl">Qiskit.jl</a></h2>
