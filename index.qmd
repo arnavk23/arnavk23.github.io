@@ -16,7 +16,7 @@ about:
       href: https://www.linkedin.com/in/arnav-kapoor-29033b2b6/
 ---
 
-I am a Computer Science undergraduate at [IISER Bhopal](https://www.iiserb.ac.in/) (BS, 2023–2027).
+I am a Computer Science undergraduate at IISER Bhopal (BS, 2023–2027).
 I work on quantum information, in particular quantum convolutional codes and
 entanglement distillation, and on numerical optimization software in Julia.
 

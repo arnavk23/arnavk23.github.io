@@ -1,13 +1,23 @@
 ---
 title: "Recommendations"
+listing:
+  contents: recommendations
+  sort: "date desc"
+  type: default
+  fields: [date, title, author, description]
+toc: false
 ---
 
 <!--
-Add one section per recommendation, newest first:
+Add one recommendation per file in recommendations/, for example
+recommendations/2026-11-01-jane-doe.qmd:
 
-## Name, Title, Organization
+---
+title: "Jane Doe, Professor, University"
+author: "Jane Doe"
+date: 2026-11-01
+description: "Relationship, e.g. research advisor"
+---
 
-> Recommendation text.
-
-*Relationship, Month Year*
+Recommendation text.
 -->

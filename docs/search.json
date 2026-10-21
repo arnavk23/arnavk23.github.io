@@ -4,84 +4,77 @@
     "href": "experience.html",
     "title": "Experience",
     "section": "",
-    "text": "University of Massachusetts Amherst, Center for Quantum Networks · Remote · Jun 2026 – present\nAdvisors: Dr. Filip Rozpedek and Dr. Stefan Krastanov.\n\nQuantum convolutional codes within the stabilizer formalism\nEntanglement purification and distillation protocols using convolutional quantum codes\nSimulation of quantum repeater protocols under realistic noisy hardware\nOpen-source tools for quantum error correction in Julia"
+    "text": "University of Massachusetts Amherst, Center for Quantum Networks\nAdvisors: Dr. Filip Rozpedek and Dr. Stefan Krastanov.\n\nQuantum convolutional codes within the stabilizer formalism\nEntanglement purification and distillation protocols using convolutional quantum codes\nSimulation of quantum repeater protocols under realistic noisy hardware\nOpen-source tools for quantum error correction in Julia"
   },
   {
     "objectID": "experience.html#summer-research-intern-quantum-convolutional-codes",
     "href": "experience.html#summer-research-intern-quantum-convolutional-codes",
     "title": "Experience",
     "section": "",
-    "text": "University of Massachusetts Amherst, Center for Quantum Networks · Remote · Jun 2026 – present\nAdvisors: Dr. Filip Rozpedek and Dr. Stefan Krastanov.\n\nQuantum convolutional codes within the stabilizer formalism\nEntanglement purification and distillation protocols using convolutional quantum codes\nSimulation of quantum repeater protocols under realistic noisy hardware\nOpen-source tools for quantum error correction in Julia"
+    "text": "University of Massachusetts Amherst, Center for Quantum Networks\nAdvisors: Dr. Filip Rozpedek and Dr. Stefan Krastanov.\n\nQuantum convolutional codes within the stabilizer formalism\nEntanglement purification and distillation protocols using convolutional quantum codes\nSimulation of quantum repeater protocols under realistic noisy hardware\nOpen-source tools for quantum error correction in Julia"
   },
   {
     "objectID": "experience.html#research-collaborator-ncl.jl",
     "href": "experience.html#research-collaborator-ncl.jl",
     "title": "Experience",
     "section": "Research Collaborator, NCL.jl",
-    "text": "Research Collaborator, NCL.jl\nPolytechnique Montréal · Remote · Aug 2026 – present\nNCL.jl implements a stabilized augmented-Lagrangian method that reformulates LANCELOT-style subproblems as a short sequence of nonlinearly constrained problems regularized by residual variables. This makes it reliable on large problems that violate the LICQ. I am developing an NCL-like outer-loop implementation of the Superb algorithm (Gould–Orban–Toint, 2003), an interior-point ℓ₁-penalty method."
+    "text": "Research Collaborator, NCL.jl\nPolytechnique Montréal\nNCL.jl implements a stabilized augmented-Lagrangian method that reformulates LANCELOT-style subproblems as a short sequence of nonlinearly constrained problems regularized by residual variables. This makes it reliable on large problems that violate the LICQ. I am developing an NCL-like outer-loop implementation of the Superb algorithm (Gould–Orban–Toint, 2003), an interior-point ℓ₁-penalty method."
   },
   {
     "objectID": "experience.html#research-intern-juliasmoothoptimizers",
     "href": "experience.html#research-intern-juliasmoothoptimizers",
     "title": "Experience",
     "section": "Research Intern, JuliaSmoothOptimizers",
-    "text": "Research Intern, JuliaSmoothOptimizers\nPolytechnique Montréal · Remote · Feb 2026 – Jul 2026\nAdvisor: Prof. Dominique Orban (Department of Applied Mathematics).\nTranslated classical optimization problems into JuMP and ADNLPModels for OptimizationProblems.jl, documented their mathematical formulations and the contributing guidelines, and added dimension-modification warnings, type corrections and tests. Contributed pull requests across the JSO ecosystem."
+    "text": "Research Intern, JuliaSmoothOptimizers\nPolytechnique Montréal\nAdvisor: Prof. Dominique Orban (Department of Applied Mathematics).\nTranslated classical optimization problems into JuMP and ADNLPModels for OptimizationProblems.jl, documented their mathematical formulations and the contributing guidelines, and added dimension-modification warnings, type corrections and tests. Contributed pull requests across the JSO ecosystem."
   },
   {
     "objectID": "experience.html#teaching-assistant-data-structures-and-algorithms",
     "href": "experience.html#teaching-assistant-data-structures-and-algorithms",
     "title": "Experience",
     "section": "Teaching Assistant, Data Structures and Algorithms",
-    "text": "Teaching Assistant, Data Structures and Algorithms\nIISER Bhopal · Aug 2026 – present\nDSE255/ECS202/ECS225 under Dr. Pawan Kumar Aurora (Department of Electrical Engineering and Computer Science)."
+    "text": "Teaching Assistant, Data Structures and Algorithms\nIISER Bhopal\nDSE255/ECS202/ECS225 under Dr. Pawan Kumar Aurora (Department of Electrical Engineering and Computer Science)."
   },
   {
     "objectID": "experience.html#research-contributor-q-maml-for-hep-at-the-lhc",
     "href": "experience.html#research-contributor-q-maml-for-hep-at-the-lhc",
     "title": "Experience",
     "section": "Research Contributor, Q-MAML for HEP at the LHC",
-    "text": "Research Contributor, Q-MAML for HEP at the LHC\nMachine Learning for Science (ML4SCI) · Remote · Aug 2026 – present\nAdvisor: Junyong Lee (Yonsei University).\nQ-MAML (Quantum Model-Agnostic Meta-Learning) uses a classical “Learner” network to predict initial parameters for variational quantum circuits. Applied to HIGGS and quark–gluon jet classification, it gave statistically significant accuracy gains over classical initialization at every qubit count tested. I am now benchmarking it on ten HEP lattice Hamiltonians, including the Schwinger model, lattice gauge theories, scalar field theory and light-nuclei EFT."
+    "text": "Research Contributor, Q-MAML for HEP at the LHC\nMachine Learning for Science (ML4SCI)\nAdvisor: Junyong Lee (Yonsei University).\nQ-MAML (Quantum Model-Agnostic Meta-Learning) uses a classical “Learner” network to predict initial parameters for variational quantum circuits. Applied to HIGGS and quark–gluon jet classification, it gave statistically significant accuracy gains over classical initialization at every qubit count tested. I am now benchmarking it on ten HEP lattice Hamiltonians, including the Schwinger model, lattice gauge theories, scalar field theory and light-nuclei EFT."
   },
   {
     "objectID": "experience.html#qintern-qiopt4qnet",
     "href": "experience.html#qintern-qiopt4qnet",
     "title": "Experience",
     "section": "QIntern, QiOpt4QNet",
-    "text": "QIntern, QiOpt4QNet\nQWorld · Remote · Jul 2026 – Aug 2026\nMentors: Krishna Bhatia and Shalini Devendrababu.\nHybrid quantum-inspired optimization for fidelity-constrained entanglement routing and memory scheduling in quantum networks (project Q23, presented at the QIntern Workshop). See QiOpt4QNet-Simulator."
+    "text": "QIntern, QiOpt4QNet\nQWorld\nMentors: Krishna Bhatia and Shalini Devendrababu.\nHybrid quantum-inspired optimization for fidelity-constrained entanglement routing and memory scheduling in quantum networks (project Q23, presented at the QIntern Workshop). See QiOpt4QNet-Simulator."
   },
   {
     "objectID": "experience.html#summer-research-intern-quantum-fisher-information",
     "href": "experience.html#summer-research-intern-quantum-fisher-information",
     "title": "Experience",
     "section": "Summer Research Intern, Quantum Fisher Information",
-    "text": "Summer Research Intern, Quantum Fisher Information\nMahindra University · Hyderabad · Jun 2026 – Jul 2026\nAdvisor: Dr. Naga Deepthi (Department of Physics).\nQuantum Fisher information bounds on CP-phase sensitivity in long-baseline neutrino experiments (T2K, NOvA), and groundwork on neutrino decoherence under scalar non-standard interactions."
+    "text": "Summer Research Intern, Quantum Fisher Information\nMahindra University · Hyderabad\nAdvisor: Dr. Naga Deepthi (Department of Physics).\nQuantum Fisher information bounds on CP-phase sensitivity in long-baseline neutrino experiments (T2K, NOvA), and groundwork on neutrino decoherence under scalar non-standard interactions."
   },
   {
     "objectID": "experience.html#lfx-mentee-linux-kernel",
     "href": "experience.html#lfx-mentee-linux-kernel",
     "title": "Experience",
     "section": "LFX Mentee, Linux Kernel",
-    "text": "LFX Mentee, Linux Kernel\nThe Linux Foundation · Remote · Aug 2025 – Nov 2025\nLinux Kernel Bug Fixing Mentorship with Shuah Khan. Nine patches applied upstream in the IIO subsystem and in networking (sfc), including fixes for truncated 64-bit divisions in scmi_sensors and for wrong magnetometer scales and swapped startup times in inv_mpu6050."
+    "text": "LFX Mentee, Linux Kernel\nThe Linux Foundation\nLinux Kernel Bug Fixing Mentorship with Shuah Khan. Nine patches applied upstream in the IIO subsystem and in networking (sfc), including fixes for truncated 64-bit divisions in scmi_sensors and for wrong magnetometer scales and swapped startup times in inv_mpu6050."
   },
   {
     "objectID": "experience.html#summer-intern-geoai4cities-lab",
     "href": "experience.html#summer-intern-geoai4cities-lab",
     "title": "Experience",
     "section": "Summer Intern, GeoAI4Cities Lab",
-    "text": "Summer Intern, GeoAI4Cities Lab\nIISER Bhopal · Jun 2025 – Jul 2025\nAdvisor: Dr. Vaibhav Kumar (Department of Data Science and Engineering).\nDeployed a semantic segmentation model for ZED 2i point clouds on an NVIDIA Jetson Orin."
+    "text": "Summer Intern, GeoAI4Cities Lab\nIISER Bhopal\nAdvisor: Dr. Vaibhav Kumar (Department of Data Science and Engineering).\nDeployed a semantic segmentation model for ZED 2i point clouds on an NVIDIA Jetson Orin."
   },
   {
-    "objectID": "experience.html#iiser-bhopal",
-    "href": "experience.html#iiser-bhopal",
-    "title": "Experience",
-    "section": "IISER Bhopal",
-    "text": "IISER Bhopal\nBS in Computer Science · Aug 2023 – Aug 2027\nOrganizing team, Luminaire’24 and Singularity’24; student volunteer, Institute Day’24."
-  },
-  {
-    "objectID": "experience.html#army-public-school",
-    "href": "experience.html#army-public-school",
-    "title": "Experience",
-    "section": "Army Public School",
-    "text": "Army Public School\nSenior High School (CBSE), Science · 2016 – 2023\n95.6% in Class XII, 94.2% in Class X."
+    "objectID": "recommendations.html",
+    "href": "recommendations.html",
+    "title": "Recommendations",
+    "section": "",
+    "text": "No matching items"
   },
   {
     "objectID": "index.html",
@@ -131,13 +124,6 @@
     "title": "Software",
     "section": "TagBot",
     "text": "TagBot\nThe GitHub Action that creates tags, releases and changelogs for Julia packages when they are registered, used across the Julia ecosystem. I have had over 20 pull requests merged, including changelog support for backport and yanked releases, a changelog_format option, correct handling of Registrator branches and subdirectory packages, case-insensitive registry lookups, and clearer error handling for rate limits, permissions and malformed TOML."
-  },
-  {
-    "objectID": "software.html#annie",
-    "href": "software.html#annie",
-    "title": "Software",
-    "section": "Annie",
-    "text": "Annie\nA fast, Rust-powered brute-force k-NN library for Python, with batch queries, thread safety, on-disk persistence and HNSW integration. I am the top contributor, with work on metadata-aware filtering and typed predicate pushdown, memory safety in the GPU backend, a path-traversal fix, and the CI and release pipeline. I also maintain its documentation site, Annie-Docs."
   },
   {
     "objectID": "software.html#qiopt4qnet-simulator",

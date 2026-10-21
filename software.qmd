@@ -29,14 +29,6 @@ merged, including changelog support for backport and yanked releases, a
 packages, case-insensitive registry lookups, and clearer error handling for rate limits,
 permissions and malformed TOML.
 
-## [Annie](https://github.com/Programmers-Paradise/Annie)
-
-A fast, Rust-powered brute-force k-NN library for Python, with batch queries, thread
-safety, on-disk persistence and HNSW integration. I am the top contributor, with work on
-metadata-aware filtering and typed predicate pushdown, memory safety in the GPU backend,
-a path-traversal fix, and the CI and release pipeline. I also maintain its documentation
-site, [Annie-Docs](https://annie-docs.netlify.app/).
-
 ## [QiOpt4QNet-Simulator](https://github.com/Sguy1908/QiOpt4QNet-Simulator)
 
 A quantum-network simulation and optimization framework. It models repeater networks with

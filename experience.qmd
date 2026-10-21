@@ -4,7 +4,7 @@ title: "Experience"
 
 ## Summer Research Intern, Quantum Convolutional Codes
 
-**University of Massachusetts Amherst**, Center for Quantum Networks · Remote · Jun 2026 – present
+**University of Massachusetts Amherst**, Center for Quantum Networks
 
 Advisors: Dr. Filip Rozpedek and Dr. Stefan Krastanov.
 
@@ -15,7 +15,7 @@ Advisors: Dr. Filip Rozpedek and Dr. Stefan Krastanov.
 
 ## Research Collaborator, NCL.jl
 
-**Polytechnique Montréal** · Remote · Aug 2026 – present
+**Polytechnique Montréal**
 
 [NCL.jl](https://github.com/JuliaSmoothOptimizers/NCL.jl) implements a stabilized
 augmented-Lagrangian method that reformulates LANCELOT-style subproblems as a short
@@ -26,7 +26,7 @@ interior-point ℓ₁-penalty method.
 
 ## Research Intern, JuliaSmoothOptimizers
 
-**Polytechnique Montréal** · Remote · Feb 2026 – Jul 2026
+**Polytechnique Montréal**
 
 Advisor: Prof. Dominique Orban (Department of Applied Mathematics).
 
@@ -38,14 +38,14 @@ across the JSO ecosystem.
 
 ## Teaching Assistant, Data Structures and Algorithms
 
-**IISER Bhopal** · Aug 2026 – present
+**IISER Bhopal**
 
 DSE255/ECS202/ECS225 under Dr. Pawan Kumar Aurora (Department of Electrical
 Engineering and Computer Science).
 
 ## Research Contributor, Q-MAML for HEP at the LHC
 
-**Machine Learning for Science (ML4SCI)** · Remote · Aug 2026 – present
+**Machine Learning for Science (ML4SCI)**
 
 Advisor: Junyong Lee (Yonsei University).
 
@@ -58,7 +58,7 @@ scalar field theory and light-nuclei EFT.
 
 ## QIntern, QiOpt4QNet
 
-**QWorld** · Remote · Jul 2026 – Aug 2026
+**QWorld**
 
 Mentors: Krishna Bhatia and Shalini Devendrababu.
 
@@ -68,7 +68,7 @@ See [QiOpt4QNet-Simulator](software.qmd#qiopt4qnet-simulator).
 
 ## Summer Research Intern, Quantum Fisher Information
 
-**Mahindra University** · Hyderabad · Jun 2026 – Jul 2026
+**Mahindra University** · Hyderabad
 
 Advisor: Dr. Naga Deepthi (Department of Physics).
 
@@ -78,7 +78,7 @@ non-standard interactions.
 
 ## LFX Mentee, Linux Kernel
 
-**The Linux Foundation** · Remote · Aug 2025 – Nov 2025
+**The Linux Foundation**
 
 Linux Kernel Bug Fixing Mentorship with Shuah Khan. Nine patches applied upstream in
 the IIO subsystem and in networking (sfc), including fixes for truncated 64-bit
@@ -87,22 +87,8 @@ in inv_mpu6050.
 
 ## Summer Intern, GeoAI4Cities Lab
 
-**IISER Bhopal** · Jun 2025 – Jul 2025
+**IISER Bhopal**
 
 Advisor: Dr. Vaibhav Kumar (Department of Data Science and Engineering).
 
 Deployed a semantic segmentation model for ZED 2i point clouds on an NVIDIA Jetson Orin.
-
-# Education
-
-## IISER Bhopal
-
-BS in Computer Science · Aug 2023 – Aug 2027
-
-Organizing team, Luminaire'24 and Singularity'24; student volunteer, Institute Day'24.
-
-## Army Public School
-
-Senior High School (CBSE), Science · 2016 – 2023
-
-95.6% in Class XII, 94.2% in Class X.
