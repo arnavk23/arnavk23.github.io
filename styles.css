@@ -1,8 +1,12 @@
 /* css styles */
 
 /* Mermaid figures are drawn for a light background; keep them readable in dark mode. */
-pre.mermaid-js {
-  background: #ffffff !important;
+.mermaid-js,
+.mermaid-js svg,
+.cell-output-display svg[id^="mermaid"] {
+  background-color: #ffffff !important;
   border-radius: 6px;
+}
+.mermaid-js {
   padding: 0.75rem;
 }
