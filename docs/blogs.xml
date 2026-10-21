@@ -10,6 +10,435 @@
 <atom:link href="https://arnavk23.github.io/blogs.xml" rel="self" type="application/rss+xml"/>
 <description>Computer Science at IISER Bhopal. Quantum information, optimization in Julia, and the Linux kernel.</description>
 <generator>quarto-1.10.19</generator>
-<lastBuildDate>Wed, 21 Oct 2026 19:49:33 GMT</lastBuildDate>
+<lastBuildDate>Wed, 21 Oct 2026 18:30:00 GMT</lastBuildDate>
+<item>
+  <title>Nine patches, many reviewers: notes from the Linux Kernel Mentorship</title>
+  <dc:creator>Arnav Kapoor</dc:creator>
+  <link>https://arnavk23.github.io/posts/2026-10-22-lfx-kernel-mentorship/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<p>Kernel developers have a reputation for being hard on newcomers. My experience was the opposite. Over the <a href="https://wiki.linuxfoundation.org/lkmp">LFX Linux Kernel Bug Fixing Mentorship</a> with Shuah Khan, nine of my patches were applied upstream: eight in the Industrial I/O (IIO) subsystem and one in the <code>sfc</code> network driver. None of them reached that state as I first wrote them. Each was improved by someone on the mailing list: a maintainer, a reviewer, or an automated test robot. This post is an account of that collaboration as much as of the bugs themselves.</p>
+<section id="background-how-a-patch-travels" class="level2">
+<h2 class="anchored" data-anchor-id="background-how-a-patch-travels">Background: how a patch travels</h2>
+<p>The Linux kernel has no pull requests. A change is a plain-text email, sent with <code>git send-email</code> to the maintainers and lists that <code>scripts/get_maintainer.pl</code> names for the files it touches. Reviewers reply inline, and they show approval with tags such as <code>Reviewed-by:</code> and <code>Acked-by:</code>. A subsystem maintainer then applies the patch to their own tree. From there it flows into <a href="https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git/">linux-next</a>, then into Linus Torvalds’ mainline tree during a merge window, and, if it is marked for stable, into the <a href="https://www.kernel.org/category/releases.html">stable kernels</a> people already run.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-flow" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-flow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-flow">flowchart LR
+    A[Prepare&lt;br/&gt;and check] --&gt; B[Send to&lt;br/&gt;the list]
+    B --&gt; C{Review}
+    C -- v2 --&gt; C
+    C -- tags --&gt; D[Maintainer&lt;br/&gt;tree]
+    D --&gt; E[linux-next]
+    E --&gt; F[Mainline]
+    D -. stable .-&gt; G[Stable&lt;br/&gt;kernels]
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-flow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: The path every patch in this post followed. Preparing means building with W=1 and running checkpatch and kernel-doc; the review loop is where most of the work happened.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>IIO, maintained by Jonathan Cameron in <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/"><code>iio.git</code></a>, has two main branches. Fixes go to <code>fixes-togreg</code> and reach mainline in the current release cycle. Everything else goes to <code>togreg</code>, through a <code>testing</code> branch, and waits for the next merge window. This distinction matters later in the story.</p>
+</section>
+<section id="learning-the-process-the-hard-way" class="level2">
+<h2 class="anchored" data-anchor-id="learning-the-process-the-hard-way">Learning the process the hard way</h2>
+<p>My first attempt, in June 2025, did not reach any maintainer: I sent it as an attachment, only to my mentor. A second round, in June 2026, targeted the <code>sm750fb</code> staging driver. I had based it on an old tree, so I was renaming variables that other contributors had already renamed. The <a href="https://github.com/intel/lkp-tests">kernel test robot</a> reported build failures, and my duplicate resubmissions earned a polite request to stop.</p>
+<p>These were useful failures. They set the method I used for every later patch:</p>
+<ol type="1">
+<li>Start from today’s linux-next or the subsystem tree, never a stale checkout.</li>
+<li>Build each changed object with <code>make W=1</code>, run <code>scripts/checkpatch.pl --strict</code>, and, for documentation, <code>scripts/kernel-doc -Wall</code> over the whole driver.</li>
+<li>Search the list archives first. I kept local git mirrors of the <a href="https://lore.kernel.org/linux-iio/">linux-iio</a> and <a href="https://lore.kernel.org/netdev/">netdev</a> archives from lore.kernel.org, so I could check whether someone was already working on the same code.</li>
+<li>Send each version once, with a changelog under the <code>---</code> line.</li>
+</ol>
+</section>
+<section id="finding-bugs-worth-fixing" class="level2">
+<h2 class="anchored" data-anchor-id="finding-bugs-worth-fixing">Finding bugs worth fixing</h2>
+<p>Most of my search time went into static analysis: <a href="https://repo.or.cz/smatch.git">Smatch</a>, <a href="https://coccinelle.gitlabpages.inria.fr/website/">Coccinelle</a>, <code>W=1</code> builds and kernel-doc. Most of what these tools report is not a bug. I went through Smatch’s 114 warnings on <code>net/</code> and about 20 in IIO. In every case I checked, the code was correct: a signedness warning caused by a <code>__be16</code> enum, a pointer that a helper function initialised where Smatch could not see it, and similar. Telling a false positive from a real defect, and dropping it quickly, turned out to be one of the most important skills of the mentorship.</p>
+<p>Three real bugs came out of this search. Each of them also taught me something about how C code can hide errors.</p>
+<section id="silent-truncation-in-scmi_sensors" class="level3">
+<h3 class="anchored" data-anchor-id="silent-truncation-in-scmi_sensors">Silent truncation in <code>scmi_sensors</code></h3>
+<p>The kernel test robot had reported <code>do_div()</code> warnings in the <a href="https://developer.arm.com/Architectures/System%20Control%20and%20Management%20Interface">SCMI</a> sensor driver, and Geert Uytterhoeven had noted on the list that most <code>do_div()</code> uses in that driver were broken. Nobody had fixed them.</p>
+<p><code>do_div(n, base)</code> divides a 64-bit dividend by a <em>32-bit</em> divisor: <code>base</code> is stored in a <code>uint32_t</code> on every architecture. The driver passed 64-bit divisors in seven calls. One of them converts a sensor’s update interval to a sampling frequency:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb1-1"><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">static</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">void</span> convert_ns_to_freq<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>u64 interval_ns<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> u64 <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span>hz<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> u64 <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span>uhz<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span></span>
+<span id="cb1-2"><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb1-3">    u64 rem<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> freq<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb1-4"></span>
+<span id="cb1-5">    freq <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> NSEC_PER_SEC<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb1-6">    rem <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> do_div<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>freq<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> interval_ns<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">);</span>   <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/* interval_ns silently truncated to 32 bits */</span></span>
+<span id="cb1-7">    <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span>hz <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> freq<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb1-8">    <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span>uhz <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> rem <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1000000</span><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">UL</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb1-9">    do_div<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(*</span>uhz<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> interval_ns<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">);</span></span>
+<span id="cb1-10"><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span></code></pre></div></div>
+<p>For any interval of 2³² ns (about 4.29 s) or longer, the divisor wraps around. Figure&nbsp;2 shows the result. The reported frequency is correct up to 4.29 s, then jumps by orders of magnitude, and an interval that is an exact multiple of 2³² ns would divide by zero.</p>
+<div id="fig-dodiv" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-dodiv-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://arnavk23.github.io/posts/2026-10-22-lfx-kernel-mentorship/do_div.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-dodiv-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Sampling frequency reported by <code>convert_ns_to_freq()</code> as a function of the sensor update interval. Before the fix, the divisor is reduced modulo 2³², so the result is wrong past 4.29 s and diverges near every multiple of 2³² ns (dotted lines).
+</figcaption>
+</figure>
+</div>
+<p>The fix replaces each call with <code>div64_u64()</code> or <code>div64_u64_rem()</code>, which take a 64-bit divisor. The functions are not drop-in replacements, though. <code>do_div()</code> modifies its first argument in place and <em>returns the remainder</em>, while <code>div64_u64()</code> <em>returns the quotient</em>. I rewrote each call site separately so it kept its meaning:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode diff code-with-copy"><code class="sourceCode diff"><span id="cb2-1"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">-   freq = NSEC_PER_SEC;</span></span>
+<span id="cb2-2"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">-   rem = do_div(freq, interval_ns);</span></span>
+<span id="cb2-3"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">-   *hz = freq;</span></span>
+<span id="cb2-4"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">-   *uhz = rem * 1000000UL;</span></span>
+<span id="cb2-5"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">-   do_div(*uhz, interval_ns);</span></span>
+<span id="cb2-6"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">+   *hz = div64_u64_rem(HZ_PER_GHZ, interval_ns, &amp;rem);</span></span>
+<span id="cb2-7"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">+   *uhz = div64_u64(rem * MICROHZ_PER_HZ, interval_ns);</span></span></code></pre></div></div>
+<p>Andy Shevchenko’s review of v1 pointed out over-long lines, asked for the named unit constants (<code>HZ_PER_GHZ</code>, <code>MICROHZ_PER_HZ</code>) instead of bare literals, and corrected the format of my <code>Assisted-by:</code> tag. The v2 got his <code>Reviewed-by:</code>, and Jonathan applied it to <code>fixes-togreg</code> with <code>Cc: stable</code> (<a href="https://lore.kernel.org/all/20261006045244.13993-1-kapoorarnav43@gmail.com/">lore</a>, <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=850040f34265">commit</a>).</p>
+</section>
+<section id="three-axes-one-calibration-value" class="level3">
+<h3 class="anchored" data-anchor-id="three-axes-one-calibration-value">Three axes, one calibration value</h3>
+<p>The InvenSense MPU-9250 combines an accelerometer and gyroscope with an AK8963 magnetometer. Each magnetometer axis has its own factory sensitivity adjustment, called ASAX, ASAY and ASAZ in the datasheet. The driver computes one scale per axis into <code>magn_raw_to_gauss[]</code> and reads it back with <code>chan-&gt;address</code> as the index. But the channel macro never set <code>.address</code>, so it was 0 on all three channels. The Y and Z axes were scaled with the X axis’s calibration, and had been since 2019.</p>
+<p>I wanted to be certain before reporting this, so I inspected the compiled channel tables with gdb rather than reasoning from the source alone:</p>
+<div id="tbl-magn" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-magn-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Magnetometer channel addresses read from the compiled object with gdb.
+</figcaption>
+<div aria-describedby="tbl-magn-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Channel</th>
+<th><code>.address</code> before</th>
+<th><code>.address</code> after</th>
+<th>Calibration used before fix</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>in_magn_x</code></td>
+<td>0</td>
+<td>0</td>
+<td>ASAX (correct)</td>
+</tr>
+<tr class="even">
+<td><code>in_magn_y</code></td>
+<td>0</td>
+<td>1</td>
+<td>ASAX (wrong)</td>
+</tr>
+<tr class="odd">
+<td><code>in_magn_z</code></td>
+<td>0</td>
+<td>2</td>
+<td>ASAX (wrong)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>The fix is a single line in the macro, <code>.address = (_chan2) - IIO_MOD_X</code>, which maps X, Y and Z to 0, 1 and 2 in the same order <code>inv_magn_init()</code> fills the array (<a href="https://lore.kernel.org/all/20261011045619.357261-1-kapoorarnav43@gmail.com/">lore</a>, <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=14265c34a218">commit</a>).</p>
+</section>
+<section id="positional-initialisers-and-swapped-startup-times" class="level3">
+<h3 class="anchored" data-anchor-id="positional-initialisers-and-swapped-startup-times">Positional initialisers and swapped startup times</h3>
+<p>While reading the same driver, I noticed a quieter problem. The hardware description struct declares the startup times in one order:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb3-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">struct</span> inv_mpu6050_hw <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb3-2">    <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">...</span></span>
+<span id="cb3-3">    <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">struct</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb3-4">        <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">unsigned</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span> accel<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb3-5">        <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">unsigned</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span> gyro<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb3-6">    <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span> startup_time<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb3-7"><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">};</span></span></code></pre></div></div>
+<p>But every entry of the <code>hw_info[]</code> table filled them in the opposite order:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode diff code-with-copy"><code class="sourceCode diff"><span id="cb4-1"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">-   .startup_time = {INV_MPU6500_GYRO_STARTUP_TIME, INV_MPU6500_ACCEL_STARTUP_TIME},</span></span>
+<span id="cb4-2"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">+   .startup_time = {</span></span>
+<span id="cb4-3"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">+       .accel = INV_MPU6500_ACCEL_STARTUP_TIME,</span></span>
+<span id="cb4-4"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">+       .gyro = INV_MPU6500_GYRO_STARTUP_TIME,</span></span>
+<span id="cb4-5"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">+   },</span></span></code></pre></div></div>
+<p>C positional initialisers assign values by position, not by meaning, so the compiler had no reason to complain. The accelerometer and gyroscope startup times had been swapped for all 19 supported chips since 2021. Using designated initialisers fixes the bug and makes the same mistake impossible to repeat.</p>
+<p>Jean-Baptiste Maneyrol, the driver’s maintainer at TDK InvenSense, acked both <code>inv_mpu6050</code> fixes. Jonathan applied them to <code>fixes-togreg</code>, marked for stable (<a href="https://lore.kernel.org/all/20261011045710.357809-1-kapoorarnav43@gmail.com/">lore</a>, <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=2b8d4cd20ac8">commit</a>).</p>
+</section>
+</section>
+<section id="documentation-and-why-reviewers-ask-for-more" class="level2">
+<h2 class="anchored" data-anchor-id="documentation-and-why-reviewers-ask-for-more">Documentation, and why reviewers ask for more</h2>
+<p>The remaining patches fixed kernel-doc comments that no longer matched the code: members that had been renamed or removed in <code>ad5686</code>, <code>inv_icm42600</code>, <code>inv_mpu6050</code>, and <code>sfc</code>. These sound minor, but the review of these patches taught me the most about how maintainers think.</p>
+<p>When I sent a one-line fix for a stale <code>@vdd_supply</code> comment in <code>inv_icm42600</code>, Andy gave it a <code>Reviewed-by:</code> and asked whether it was the only kernel-doc problem in the driver. It was not. My v2 became a two-patch series that left the driver clean under <code>kernel-doc -Wall</code>. From then on I checked the whole driver before sending any documentation patch, and the <code>inv_mpu6050</code> patch fixed all 13 of its warnings at once.</p>
+<p>On netdev, Simon Horman noticed that a member next to the ones I had fixed in <code>sfc</code> was also undocumented. Looking closer, it was not used anywhere, so v2 removed it and two other unused members. That patch got <code>Reviewed-by:</code> tags from Alex Austin at AMD and from Simon, and Paolo Abeni applied it to <code>net-next</code> (<a href="https://lore.kernel.org/all/20261007175338.28683-1-kapoorarnav43@gmail.com/">lore</a>, <a href="https://git.kernel.org/netdev/net-next/c/32a8010d2c30">commit</a>). It was my first patch applied anywhere in the kernel.</p>
+</section>
+<section id="working-with-the-maintainers" class="level2">
+<h2 class="anchored" data-anchor-id="working-with-the-maintainers">Working with the maintainers</h2>
+<p>I was nervous before every early submission. The names on the <code>To:</code> line were names I knew from <code>MAINTAINERS</code> files and commit logs, and every reply would be public and archived. That nervousness faded as the replies came in, because they were generous and precise.</p>
+<p>Jonathan made me feel welcome from the start. When Jean-Baptiste called the startup-time fix “another good catch”, Jonathan replied “Absolutely” and applied it. He then suggested a follow-up, using named initialisers for the neighbouring <code>.temp</code> field, and added “No problem if you have moved onto other things!” It was a small sentence, but it made me feel like a contributor rather than a student.</p>
+<p>He was also careful in ways that taught me about stewardship. On the <code>cros_ec_sensors</code> patch he wrote that the driver “tends to be well maintained”, so he would wait for its own maintainers before applying it. Tzung-Bi Shih, a ChromeOS EC maintainer, reviewed it the next morning, and Jonathan applied it that evening. When Joshua Crofts asked me for a <code>Fixes:</code> tag on that patch, I traced the code back to the commit that introduced it and posted the tag in the thread. Andy replied that there was no need to resend, because <code>b4</code> collects tags from the whole thread. These are small things, but each of them is part of how the community works.</p>
+<p>The best moment was a run of emails late on 17 October. Within about twenty minutes, “Applied to the togreg branch of iio.git” and “Applied to the fixes-togreg branch” arrived for seven of my patches. I was thrilled. After the earlier failures, seeing them applied one after another was the high point of the mentorship.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-timeline" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-timeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-timeline">gantt
+    dateFormat YYYY-MM-DD
+    axisFormat %d %b
+    section net-next
+    sfc kernel-doc (v1, v2)        :done, 2026-10-03, 2026-10-13
+    applied                        :milestone, 2026-10-13, 0d
+    section iio fixes-togreg
+    scmi_sensors (v1, v2)          :done, 2026-10-03, 2026-10-17
+    mpu6050 magnetometer scale     :done, 2026-10-11, 2026-10-17
+    mpu6050 startup times          :done, 2026-10-11, 2026-10-17
+    cros_ec CALIBSCALE             :done, 2026-10-11, 2026-10-18
+    applied                        :milestone, 2026-10-17, 0d
+    section iio togreg
+    icm42600 kernel-doc (v1, v2)   :done, 2026-10-03, 2026-10-17
+    ad5686 kernel-doc              :done, 2026-10-11, 2026-10-17
+    mpu6050 kernel-doc             :done, 2026-10-11, 2026-10-17
+    section in review
+    mpu6050 named .temp            :active, 2026-10-18, 2026-10-22
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-timeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: From first submission to application, October 2026. Bars span first submission to application; diamonds mark the main application days.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="a-lesson-in-dependencies" class="level2">
+<h2 class="anchored" data-anchor-id="a-lesson-in-dependencies">A lesson in dependencies</h2>
+<p>The follow-up Jonathan suggested taught me one more thing. I based it on <code>fixes-togreg</code>, because it edits lines that the startup-time fix had just changed. Joshua tried it on the development branch and replied that it did not apply. The patch was fine, but its context lines only exist where the startup-time fix exists. I explained this on the list. The lesson is to always state a patch’s base branch and dependencies below the <code>---</code> line, especially when it builds on a fix that has not yet reached the development branch.</p>
+</section>
+<section id="on-using-an-ai-assistant" class="level2">
+<h2 class="anchored" data-anchor-id="on-using-an-ai-assistant">On using an AI assistant</h2>
+<p>I used an LLM-based assistant for analysis and to check my reasoning, and I disclosed it with an <code>Assisted-by:</code> tag on each patch, as the kernel’s <a href="https://docs.kernel.org/process/coding-assistants.html">policy on coding assistants</a> requires. That policy is clear that responsibility stays with the human: I signed off, built and tested every patch, and answered every review myself. The guidance on the tag’s format changed during the mentorship. Andy corrected my early format, and Jonathan later dropped the tag from one patch because the guidance had changed again. It is a policy still being worked out, and the community is working it out in public.</p>
+</section>
+<section id="results" class="level2">
+<h2 class="anchored" data-anchor-id="results">Results</h2>
+<div id="tbl-results" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-results-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;2: All nine applied patches.
+</figcaption>
+<div aria-describedby="tbl-results-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Patch</th>
+<th>Tree</th>
+<th>Reviewed / acked by</th>
+<th>Links</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>scmi_sensors: fix truncating 64-bit divisions</td>
+<td>iio fixes, stable</td>
+<td>Andy Shevchenko</td>
+<td><a href="https://lore.kernel.org/all/20261006045244.13993-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=850040f34265">commit</a></td>
+</tr>
+<tr class="even">
+<td>inv_mpu6050: fix magnetometer scale of Y and Z axes</td>
+<td>iio fixes, stable</td>
+<td>Jean-Baptiste Maneyrol</td>
+<td><a href="https://lore.kernel.org/all/20261011045619.357261-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=14265c34a218">commit</a></td>
+</tr>
+<tr class="odd">
+<td>inv_mpu6050: fix swapped accel and gyro startup times</td>
+<td>iio fixes, stable</td>
+<td>Jean-Baptiste Maneyrol</td>
+<td><a href="https://lore.kernel.org/all/20261011045710.357809-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=2b8d4cd20ac8">commit</a></td>
+</tr>
+<tr class="even">
+<td>cros_ec_sensors: sensor_scale for CALIBSCALE</td>
+<td>iio fixes</td>
+<td>Joshua Crofts, Tzung-Bi Shih</td>
+<td><a href="https://lore.kernel.org/all/20261011045410.356156-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=489856f8d455">commit</a></td>
+</tr>
+<tr class="odd">
+<td>sfc: fix stale kernel-doc in net_driver.h</td>
+<td>net-next</td>
+<td>Alex Austin, Simon Horman</td>
+<td><a href="https://lore.kernel.org/all/20261007175338.28683-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/netdev/net-next/c/32a8010d2c30">commit</a></td>
+</tr>
+<tr class="even">
+<td>inv_icm42600: fix kernel-doc warnings (2 patches)</td>
+<td>iio togreg</td>
+<td>Andy Shevchenko, Joshua Crofts</td>
+<td><a href="https://lore.kernel.org/all/20261006045413.14320-1-kapoorarnav43@gmail.com/">lore</a></td>
+</tr>
+<tr class="odd">
+<td>ad5686: fix channels member name in kernel-doc</td>
+<td>iio togreg</td>
+<td>Maxwell Doose, Nuno Sá</td>
+<td><a href="https://lore.kernel.org/all/20261011045149.353929-1-kapoorarnav43@gmail.com/">lore</a></td>
+</tr>
+<tr class="even">
+<td>inv_mpu6050: fix kernel-doc warnings</td>
+<td>iio togreg</td>
+<td>Joshua Crofts</td>
+<td><a href="https://lore.kernel.org/all/20261011045754.358335-1-kapoorarnav43@gmail.com/">lore</a></td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</section>
+<section id="for-the-next-mentee" class="level2">
+<h2 class="anchored" data-anchor-id="for-the-next-mentee">For the next mentee</h2>
+<ul>
+<li>Read <a href="https://docs.kernel.org/process/submitting-patches.html"><code>submitting-patches.rst</code></a> before your first patch, and the subsystem’s maintainer notes, such as <a href="https://docs.kernel.org/process/maintainer-netdev.html"><code>maintainer-netdev.rst</code></a>, before your first patch to that subsystem.</li>
+<li>Look for code that is wrong, not only code that warns. Tracing a bug to the commit that introduced it, with a <code>Fixes:</code> tag, makes a patch much more useful to maintainers.</li>
+<li>When a reviewer asks for more than you sent, they are usually right. Treat it as the start of a collaboration.</li>
+<li>Be patient. Maintainers batch their work, and my patches waited one to two weeks.</li>
+</ul>
+</section>
+<section id="acknowledgements" class="level2">
+<h2 class="anchored" data-anchor-id="acknowledgements">Acknowledgements</h2>
+<p>I am grateful to Shuah Khan for running the mentorship, and to everyone who reviewed my work: Jonathan Cameron, Andy Shevchenko, Jean-Baptiste Maneyrol, Joshua Crofts, Nuno Sá, Maxwell Doose, Tzung-Bi Shih, Simon Horman, Alex Austin, Paolo Abeni and Geert Uytterhoeven. Each of these patches is better because of them.</p>
+
+
+</section>
+
+ ]]></description>
+  <category>linux-kernel</category>
+  <category>lfx</category>
+  <category>iio</category>
+  <category>open-source</category>
+  <guid>https://arnavk23.github.io/posts/2026-10-22-lfx-kernel-mentorship/</guid>
+  <pubDate>Wed, 21 Oct 2026 18:30:00 GMT</pubDate>
+  <media:content url="https://arnavk23.github.io/posts/2026-10-22-lfx-kernel-mentorship/do_div.png" medium="image" type="image/png" height="76" width="144"/>
+</item>
 </channel>
 </rss>

@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Arnav Kapoor">
+<meta name="dcterms.date" content="2026-10-22">
+<meta name="description" content="A technical account of my LFX Linux Kernel Bug Fixing Mentorship: how bugs in the IIO and networking subsystems were found, how review on the mailing list shaped each fix, and what working with kernel maintainers taught me.">
+
+<title>Nine patches, many reviewers: notes from the Linux Kernel Mentorship – Arnav Kapoor</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-bd33107e172c871d584c219ccff192d3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-1666565aa0284326c2b99e1b2fbec215.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-bd33107e172c871d584c219ccff192d3.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="../../site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="../../site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="../../site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Arnav Kapoor</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../experience.html"> 
+<span class="menu-text">Experience</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../software.html"> 
+<span class="menu-text">Software</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../blogs.html"> 
+<span class="menu-text">Blogs</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../recommendations.html"> 
+<span class="menu-text">Recommendations</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/arnavk23"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://www.linkedin.com/in/arnav-kapoor-29033b2b6/"> <i class="bi bi-linkedin" role="img" aria-label="LinkedIn">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../blogs.xml"> <i class="bi bi-rss" role="img" aria-label="RSS feed">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#background-how-a-patch-travels" id="toc-background-how-a-patch-travels" class="nav-link active" data-scroll-target="#background-how-a-patch-travels">Background: how a patch travels</a></li>
+  <li><a href="#learning-the-process-the-hard-way" id="toc-learning-the-process-the-hard-way" class="nav-link" data-scroll-target="#learning-the-process-the-hard-way">Learning the process the hard way</a></li>
+  <li><a href="#finding-bugs-worth-fixing" id="toc-finding-bugs-worth-fixing" class="nav-link" data-scroll-target="#finding-bugs-worth-fixing">Finding bugs worth fixing</a>
+  <ul class="collapse">
+  <li><a href="#silent-truncation-in-scmi_sensors" id="toc-silent-truncation-in-scmi_sensors" class="nav-link" data-scroll-target="#silent-truncation-in-scmi_sensors">Silent truncation in <code>scmi_sensors</code></a></li>
+  <li><a href="#three-axes-one-calibration-value" id="toc-three-axes-one-calibration-value" class="nav-link" data-scroll-target="#three-axes-one-calibration-value">Three axes, one calibration value</a></li>
+  <li><a href="#positional-initialisers-and-swapped-startup-times" id="toc-positional-initialisers-and-swapped-startup-times" class="nav-link" data-scroll-target="#positional-initialisers-and-swapped-startup-times">Positional initialisers and swapped startup times</a></li>
+  </ul></li>
+  <li><a href="#documentation-and-why-reviewers-ask-for-more" id="toc-documentation-and-why-reviewers-ask-for-more" class="nav-link" data-scroll-target="#documentation-and-why-reviewers-ask-for-more">Documentation, and why reviewers ask for more</a></li>
+  <li><a href="#working-with-the-maintainers" id="toc-working-with-the-maintainers" class="nav-link" data-scroll-target="#working-with-the-maintainers">Working with the maintainers</a></li>
+  <li><a href="#a-lesson-in-dependencies" id="toc-a-lesson-in-dependencies" class="nav-link" data-scroll-target="#a-lesson-in-dependencies">A lesson in dependencies</a></li>
+  <li><a href="#on-using-an-ai-assistant" id="toc-on-using-an-ai-assistant" class="nav-link" data-scroll-target="#on-using-an-ai-assistant">On using an AI assistant</a></li>
+  <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">Results</a></li>
+  <li><a href="#for-the-next-mentee" id="toc-for-the-next-mentee" class="nav-link" data-scroll-target="#for-the-next-mentee">For the next mentee</a></li>
+  <li><a href="#acknowledgements" id="toc-acknowledgements" class="nav-link" data-scroll-target="#acknowledgements">Acknowledgements</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Nine patches, many reviewers: notes from the Linux Kernel Mentorship</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">linux-kernel</div>
+    <div class="quarto-category">lfx</div>
+    <div class="quarto-category">iio</div>
+    <div class="quarto-category">open-source</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    A technical account of my LFX Linux Kernel Bug Fixing Mentorship: how bugs in the IIO and networking subsystems were found, how review on the mailing list shaped each fix, and what working with kernel maintainers taught me.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Arnav Kapoor </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">October 22, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Kernel developers have a reputation for being hard on newcomers. My experience was the opposite. Over the <a href="https://wiki.linuxfoundation.org/lkmp">LFX Linux Kernel Bug Fixing Mentorship</a> with Shuah Khan, nine of my patches were applied upstream: eight in the Industrial I/O (IIO) subsystem and one in the <code>sfc</code> network driver. None of them reached that state as I first wrote them. Each was improved by someone on the mailing list: a maintainer, a reviewer, or an automated test robot. This post is an account of that collaboration as much as of the bugs themselves.</p>
+<section id="background-how-a-patch-travels" class="level2">
+<h2 class="anchored" data-anchor-id="background-how-a-patch-travels">Background: how a patch travels</h2>
+<p>The Linux kernel has no pull requests. A change is a plain-text email, sent with <code>git send-email</code> to the maintainers and lists that <code>scripts/get_maintainer.pl</code> names for the files it touches. Reviewers reply inline, and they show approval with tags such as <code>Reviewed-by:</code> and <code>Acked-by:</code>. A subsystem maintainer then applies the patch to their own tree. From there it flows into <a href="https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git/">linux-next</a>, then into Linus Torvalds’ mainline tree during a merge window, and, if it is marked for stable, into the <a href="https://www.kernel.org/category/releases.html">stable kernels</a> people already run.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-flow" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-flow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-flow">flowchart LR
+    A[Prepare&lt;br/&gt;and check] --&gt; B[Send to&lt;br/&gt;the list]
+    B --&gt; C{Review}
+    C -- v2 --&gt; C
+    C -- tags --&gt; D[Maintainer&lt;br/&gt;tree]
+    D --&gt; E[linux-next]
+    E --&gt; F[Mainline]
+    D -. stable .-&gt; G[Stable&lt;br/&gt;kernels]
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-flow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: The path every patch in this post followed. Preparing means building with W=1 and running checkpatch and kernel-doc; the review loop is where most of the work happened.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>IIO, maintained by Jonathan Cameron in <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/"><code>iio.git</code></a>, has two main branches. Fixes go to <code>fixes-togreg</code> and reach mainline in the current release cycle. Everything else goes to <code>togreg</code>, through a <code>testing</code> branch, and waits for the next merge window. This distinction matters later in the story.</p>
+</section>
+<section id="learning-the-process-the-hard-way" class="level2">
+<h2 class="anchored" data-anchor-id="learning-the-process-the-hard-way">Learning the process the hard way</h2>
+<p>My first attempt, in June 2025, did not reach any maintainer: I sent it as an attachment, only to my mentor. A second round, in June 2026, targeted the <code>sm750fb</code> staging driver. I had based it on an old tree, so I was renaming variables that other contributors had already renamed. The <a href="https://github.com/intel/lkp-tests">kernel test robot</a> reported build failures, and my duplicate resubmissions earned a polite request to stop.</p>
+<p>These were useful failures. They set the method I used for every later patch:</p>
+<ol type="1">
+<li>Start from today’s linux-next or the subsystem tree, never a stale checkout.</li>
+<li>Build each changed object with <code>make W=1</code>, run <code>scripts/checkpatch.pl --strict</code>, and, for documentation, <code>scripts/kernel-doc -Wall</code> over the whole driver.</li>
+<li>Search the list archives first. I kept local git mirrors of the <a href="https://lore.kernel.org/linux-iio/">linux-iio</a> and <a href="https://lore.kernel.org/netdev/">netdev</a> archives from lore.kernel.org, so I could check whether someone was already working on the same code.</li>
+<li>Send each version once, with a changelog under the <code>---</code> line.</li>
+</ol>
+</section>
+<section id="finding-bugs-worth-fixing" class="level2">
+<h2 class="anchored" data-anchor-id="finding-bugs-worth-fixing">Finding bugs worth fixing</h2>
+<p>Most of my search time went into static analysis: <a href="https://repo.or.cz/smatch.git">Smatch</a>, <a href="https://coccinelle.gitlabpages.inria.fr/website/">Coccinelle</a>, <code>W=1</code> builds and kernel-doc. Most of what these tools report is not a bug. I went through Smatch’s 114 warnings on <code>net/</code> and about 20 in IIO. In every case I checked, the code was correct: a signedness warning caused by a <code>__be16</code> enum, a pointer that a helper function initialised where Smatch could not see it, and similar. Telling a false positive from a real defect, and dropping it quickly, turned out to be one of the most important skills of the mentorship.</p>
+<p>Three real bugs came out of this search. Each of them also taught me something about how C code can hide errors.</p>
+<section id="silent-truncation-in-scmi_sensors" class="level3">
+<h3 class="anchored" data-anchor-id="silent-truncation-in-scmi_sensors">Silent truncation in <code>scmi_sensors</code></h3>
+<p>The kernel test robot had reported <code>do_div()</code> warnings in the <a href="https://developer.arm.com/Architectures/System%20Control%20and%20Management%20Interface">SCMI</a> sensor driver, and Geert Uytterhoeven had noted on the list that most <code>do_div()</code> uses in that driver were broken. Nobody had fixed them.</p>
+<p><code>do_div(n, base)</code> divides a 64-bit dividend by a <em>32-bit</em> divisor: <code>base</code> is stored in a <code>uint32_t</code> on every architecture. The driver passed 64-bit divisors in seven calls. One of them converts a sensor’s update interval to a sampling frequency:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="dt">static</span> <span class="dt">void</span> convert_ns_to_freq<span class="op">(</span>u64 interval_ns<span class="op">,</span> u64 <span class="op">*</span>hz<span class="op">,</span> u64 <span class="op">*</span>uhz<span class="op">)</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="op">{</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    u64 rem<span class="op">,</span> freq<span class="op">;</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    freq <span class="op">=</span> NSEC_PER_SEC<span class="op">;</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    rem <span class="op">=</span> do_div<span class="op">(</span>freq<span class="op">,</span> interval_ns<span class="op">);</span>   <span class="co">/* interval_ns silently truncated to 32 bits */</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">*</span>hz <span class="op">=</span> freq<span class="op">;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">*</span>uhz <span class="op">=</span> rem <span class="op">*</span> <span class="dv">1000000</span><span class="bu">UL</span><span class="op">;</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    do_div<span class="op">(*</span>uhz<span class="op">,</span> interval_ns<span class="op">);</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>For any interval of 2³² ns (about 4.29 s) or longer, the divisor wraps around. <a href="#fig-dodiv" class="quarto-xref">Figure&nbsp;2</a> shows the result. The reported frequency is correct up to 4.29 s, then jumps by orders of magnitude, and an interval that is an exact multiple of 2³² ns would divide by zero.</p>
+<div id="fig-dodiv" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-dodiv-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="do_div.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-dodiv-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Sampling frequency reported by <code>convert_ns_to_freq()</code> as a function of the sensor update interval. Before the fix, the divisor is reduced modulo 2³², so the result is wrong past 4.29 s and diverges near every multiple of 2³² ns (dotted lines).
+</figcaption>
+</figure>
+</div>
+<p>The fix replaces each call with <code>div64_u64()</code> or <code>div64_u64_rem()</code>, which take a 64-bit divisor. The functions are not drop-in replacements, though. <code>do_div()</code> modifies its first argument in place and <em>returns the remainder</em>, while <code>div64_u64()</code> <em>returns the quotient</em>. I rewrote each call site separately so it kept its meaning:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode diff code-with-copy"><code class="sourceCode diff"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="st">-   freq = NSEC_PER_SEC;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="st">-   rem = do_div(freq, interval_ns);</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="st">-   *hz = freq;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="st">-   *uhz = rem * 1000000UL;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="st">-   do_div(*uhz, interval_ns);</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="va">+   *hz = div64_u64_rem(HZ_PER_GHZ, interval_ns, &amp;rem);</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="va">+   *uhz = div64_u64(rem * MICROHZ_PER_HZ, interval_ns);</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Andy Shevchenko’s review of v1 pointed out over-long lines, asked for the named unit constants (<code>HZ_PER_GHZ</code>, <code>MICROHZ_PER_HZ</code>) instead of bare literals, and corrected the format of my <code>Assisted-by:</code> tag. The v2 got his <code>Reviewed-by:</code>, and Jonathan applied it to <code>fixes-togreg</code> with <code>Cc: stable</code> (<a href="https://lore.kernel.org/all/20261006045244.13993-1-kapoorarnav43@gmail.com/">lore</a>, <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=850040f34265">commit</a>).</p>
+</section>
+<section id="three-axes-one-calibration-value" class="level3">
+<h3 class="anchored" data-anchor-id="three-axes-one-calibration-value">Three axes, one calibration value</h3>
+<p>The InvenSense MPU-9250 combines an accelerometer and gyroscope with an AK8963 magnetometer. Each magnetometer axis has its own factory sensitivity adjustment, called ASAX, ASAY and ASAZ in the datasheet. The driver computes one scale per axis into <code>magn_raw_to_gauss[]</code> and reads it back with <code>chan-&gt;address</code> as the index. But the channel macro never set <code>.address</code>, so it was 0 on all three channels. The Y and Z axes were scaled with the X axis’s calibration, and had been since 2019.</p>
+<p>I wanted to be certain before reporting this, so I inspected the compiled channel tables with gdb rather than reasoning from the source alone:</p>
+<div id="tbl-magn" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-magn-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Magnetometer channel addresses read from the compiled object with gdb.
+</figcaption>
+<div aria-describedby="tbl-magn-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Channel</th>
+<th><code>.address</code> before</th>
+<th><code>.address</code> after</th>
+<th>Calibration used before fix</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>in_magn_x</code></td>
+<td>0</td>
+<td>0</td>
+<td>ASAX (correct)</td>
+</tr>
+<tr class="even">
+<td><code>in_magn_y</code></td>
+<td>0</td>
+<td>1</td>
+<td>ASAX (wrong)</td>
+</tr>
+<tr class="odd">
+<td><code>in_magn_z</code></td>
+<td>0</td>
+<td>2</td>
+<td>ASAX (wrong)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>The fix is a single line in the macro, <code>.address = (_chan2) - IIO_MOD_X</code>, which maps X, Y and Z to 0, 1 and 2 in the same order <code>inv_magn_init()</code> fills the array (<a href="https://lore.kernel.org/all/20261011045619.357261-1-kapoorarnav43@gmail.com/">lore</a>, <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=14265c34a218">commit</a>).</p>
+</section>
+<section id="positional-initialisers-and-swapped-startup-times" class="level3">
+<h3 class="anchored" data-anchor-id="positional-initialisers-and-swapped-startup-times">Positional initialisers and swapped startup times</h3>
+<p>While reading the same driver, I noticed a quieter problem. The hardware description struct declares the startup times in one order:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> inv_mpu6050_hw <span class="op">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="op">...</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>        <span class="dt">unsigned</span> <span class="dt">int</span> accel<span class="op">;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>        <span class="dt">unsigned</span> <span class="dt">int</span> gyro<span class="op">;</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span> startup_time<span class="op">;</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>But every entry of the <code>hw_info[]</code> table filled them in the opposite order:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode diff code-with-copy"><code class="sourceCode diff"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="st">-   .startup_time = {INV_MPU6500_GYRO_STARTUP_TIME, INV_MPU6500_ACCEL_STARTUP_TIME},</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="va">+   .startup_time = {</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="va">+       .accel = INV_MPU6500_ACCEL_STARTUP_TIME,</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="va">+       .gyro = INV_MPU6500_GYRO_STARTUP_TIME,</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="va">+   },</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>C positional initialisers assign values by position, not by meaning, so the compiler had no reason to complain. The accelerometer and gyroscope startup times had been swapped for all 19 supported chips since 2021. Using designated initialisers fixes the bug and makes the same mistake impossible to repeat.</p>
+<p>Jean-Baptiste Maneyrol, the driver’s maintainer at TDK InvenSense, acked both <code>inv_mpu6050</code> fixes. Jonathan applied them to <code>fixes-togreg</code>, marked for stable (<a href="https://lore.kernel.org/all/20261011045710.357809-1-kapoorarnav43@gmail.com/">lore</a>, <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=2b8d4cd20ac8">commit</a>).</p>
+</section>
+</section>
+<section id="documentation-and-why-reviewers-ask-for-more" class="level2">
+<h2 class="anchored" data-anchor-id="documentation-and-why-reviewers-ask-for-more">Documentation, and why reviewers ask for more</h2>
+<p>The remaining patches fixed kernel-doc comments that no longer matched the code: members that had been renamed or removed in <code>ad5686</code>, <code>inv_icm42600</code>, <code>inv_mpu6050</code>, and <code>sfc</code>. These sound minor, but the review of these patches taught me the most about how maintainers think.</p>
+<p>When I sent a one-line fix for a stale <code>@vdd_supply</code> comment in <code>inv_icm42600</code>, Andy gave it a <code>Reviewed-by:</code> and asked whether it was the only kernel-doc problem in the driver. It was not. My v2 became a two-patch series that left the driver clean under <code>kernel-doc -Wall</code>. From then on I checked the whole driver before sending any documentation patch, and the <code>inv_mpu6050</code> patch fixed all 13 of its warnings at once.</p>
+<p>On netdev, Simon Horman noticed that a member next to the ones I had fixed in <code>sfc</code> was also undocumented. Looking closer, it was not used anywhere, so v2 removed it and two other unused members. That patch got <code>Reviewed-by:</code> tags from Alex Austin at AMD and from Simon, and Paolo Abeni applied it to <code>net-next</code> (<a href="https://lore.kernel.org/all/20261007175338.28683-1-kapoorarnav43@gmail.com/">lore</a>, <a href="https://git.kernel.org/netdev/net-next/c/32a8010d2c30">commit</a>). It was my first patch applied anywhere in the kernel.</p>
+</section>
+<section id="working-with-the-maintainers" class="level2">
+<h2 class="anchored" data-anchor-id="working-with-the-maintainers">Working with the maintainers</h2>
+<p>I was nervous before every early submission. The names on the <code>To:</code> line were names I knew from <code>MAINTAINERS</code> files and commit logs, and every reply would be public and archived. That nervousness faded as the replies came in, because they were generous and precise.</p>
+<p>Jonathan made me feel welcome from the start. When Jean-Baptiste called the startup-time fix “another good catch”, Jonathan replied “Absolutely” and applied it. He then suggested a follow-up, using named initialisers for the neighbouring <code>.temp</code> field, and added “No problem if you have moved onto other things!” It was a small sentence, but it made me feel like a contributor rather than a student.</p>
+<p>He was also careful in ways that taught me about stewardship. On the <code>cros_ec_sensors</code> patch he wrote that the driver “tends to be well maintained”, so he would wait for its own maintainers before applying it. Tzung-Bi Shih, a ChromeOS EC maintainer, reviewed it the next morning, and Jonathan applied it that evening. When Joshua Crofts asked me for a <code>Fixes:</code> tag on that patch, I traced the code back to the commit that introduced it and posted the tag in the thread. Andy replied that there was no need to resend, because <code>b4</code> collects tags from the whole thread. These are small things, but each of them is part of how the community works.</p>
+<p>The best moment was a run of emails late on 17 October. Within about twenty minutes, “Applied to the togreg branch of iio.git” and “Applied to the fixes-togreg branch” arrived for seven of my patches. I was thrilled. After the earlier failures, seeing them applied one after another was the high point of the mentorship.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-timeline" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-timeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-timeline">gantt
+    dateFormat YYYY-MM-DD
+    axisFormat %d %b
+    section net-next
+    sfc kernel-doc (v1, v2)        :done, 2026-10-03, 2026-10-13
+    applied                        :milestone, 2026-10-13, 0d
+    section iio fixes-togreg
+    scmi_sensors (v1, v2)          :done, 2026-10-03, 2026-10-17
+    mpu6050 magnetometer scale     :done, 2026-10-11, 2026-10-17
+    mpu6050 startup times          :done, 2026-10-11, 2026-10-17
+    cros_ec CALIBSCALE             :done, 2026-10-11, 2026-10-18
+    applied                        :milestone, 2026-10-17, 0d
+    section iio togreg
+    icm42600 kernel-doc (v1, v2)   :done, 2026-10-03, 2026-10-17
+    ad5686 kernel-doc              :done, 2026-10-11, 2026-10-17
+    mpu6050 kernel-doc             :done, 2026-10-11, 2026-10-17
+    section in review
+    mpu6050 named .temp            :active, 2026-10-18, 2026-10-22
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-timeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: From first submission to application, October 2026. Bars span first submission to application; diamonds mark the main application days.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="a-lesson-in-dependencies" class="level2">
+<h2 class="anchored" data-anchor-id="a-lesson-in-dependencies">A lesson in dependencies</h2>
+<p>The follow-up Jonathan suggested taught me one more thing. I based it on <code>fixes-togreg</code>, because it edits lines that the startup-time fix had just changed. Joshua tried it on the development branch and replied that it did not apply. The patch was fine, but its context lines only exist where the startup-time fix exists. I explained this on the list. The lesson is to always state a patch’s base branch and dependencies below the <code>---</code> line, especially when it builds on a fix that has not yet reached the development branch.</p>
+</section>
+<section id="on-using-an-ai-assistant" class="level2">
+<h2 class="anchored" data-anchor-id="on-using-an-ai-assistant">On using an AI assistant</h2>
+<p>I used an LLM-based assistant for analysis and to check my reasoning, and I disclosed it with an <code>Assisted-by:</code> tag on each patch, as the kernel’s <a href="https://docs.kernel.org/process/coding-assistants.html">policy on coding assistants</a> requires. That policy is clear that responsibility stays with the human: I signed off, built and tested every patch, and answered every review myself. The guidance on the tag’s format changed during the mentorship. Andy corrected my early format, and Jonathan later dropped the tag from one patch because the guidance had changed again. It is a policy still being worked out, and the community is working it out in public.</p>
+</section>
+<section id="results" class="level2">
+<h2 class="anchored" data-anchor-id="results">Results</h2>
+<div id="tbl-results" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-results-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;2: All nine applied patches.
+</figcaption>
+<div aria-describedby="tbl-results-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Patch</th>
+<th>Tree</th>
+<th>Reviewed / acked by</th>
+<th>Links</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>scmi_sensors: fix truncating 64-bit divisions</td>
+<td>iio fixes, stable</td>
+<td>Andy Shevchenko</td>
+<td><a href="https://lore.kernel.org/all/20261006045244.13993-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=850040f34265">commit</a></td>
+</tr>
+<tr class="even">
+<td>inv_mpu6050: fix magnetometer scale of Y and Z axes</td>
+<td>iio fixes, stable</td>
+<td>Jean-Baptiste Maneyrol</td>
+<td><a href="https://lore.kernel.org/all/20261011045619.357261-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=14265c34a218">commit</a></td>
+</tr>
+<tr class="odd">
+<td>inv_mpu6050: fix swapped accel and gyro startup times</td>
+<td>iio fixes, stable</td>
+<td>Jean-Baptiste Maneyrol</td>
+<td><a href="https://lore.kernel.org/all/20261011045710.357809-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=2b8d4cd20ac8">commit</a></td>
+</tr>
+<tr class="even">
+<td>cros_ec_sensors: sensor_scale for CALIBSCALE</td>
+<td>iio fixes</td>
+<td>Joshua Crofts, Tzung-Bi Shih</td>
+<td><a href="https://lore.kernel.org/all/20261011045410.356156-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=489856f8d455">commit</a></td>
+</tr>
+<tr class="odd">
+<td>sfc: fix stale kernel-doc in net_driver.h</td>
+<td>net-next</td>
+<td>Alex Austin, Simon Horman</td>
+<td><a href="https://lore.kernel.org/all/20261007175338.28683-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/netdev/net-next/c/32a8010d2c30">commit</a></td>
+</tr>
+<tr class="even">
+<td>inv_icm42600: fix kernel-doc warnings (2 patches)</td>
+<td>iio togreg</td>
+<td>Andy Shevchenko, Joshua Crofts</td>
+<td><a href="https://lore.kernel.org/all/20261006045413.14320-1-kapoorarnav43@gmail.com/">lore</a></td>
+</tr>
+<tr class="odd">
+<td>ad5686: fix channels member name in kernel-doc</td>
+<td>iio togreg</td>
+<td>Maxwell Doose, Nuno Sá</td>
+<td><a href="https://lore.kernel.org/all/20261011045149.353929-1-kapoorarnav43@gmail.com/">lore</a></td>
+</tr>
+<tr class="even">
+<td>inv_mpu6050: fix kernel-doc warnings</td>
+<td>iio togreg</td>
+<td>Joshua Crofts</td>
+<td><a href="https://lore.kernel.org/all/20261011045754.358335-1-kapoorarnav43@gmail.com/">lore</a></td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</section>
+<section id="for-the-next-mentee" class="level2">
+<h2 class="anchored" data-anchor-id="for-the-next-mentee">For the next mentee</h2>
+<ul>
+<li>Read <a href="https://docs.kernel.org/process/submitting-patches.html"><code>submitting-patches.rst</code></a> before your first patch, and the subsystem’s maintainer notes, such as <a href="https://docs.kernel.org/process/maintainer-netdev.html"><code>maintainer-netdev.rst</code></a>, before your first patch to that subsystem.</li>
+<li>Look for code that is wrong, not only code that warns. Tracing a bug to the commit that introduced it, with a <code>Fixes:</code> tag, makes a patch much more useful to maintainers.</li>
+<li>When a reviewer asks for more than you sent, they are usually right. Treat it as the start of a collaboration.</li>
+<li>Be patient. Maintainers batch their work, and my patches waited one to two weeks.</li>
+</ul>
+</section>
+<section id="acknowledgements" class="level2">
+<h2 class="anchored" data-anchor-id="acknowledgements">Acknowledgements</h2>
+<p>I am grateful to Shuah Khan for running the mentorship, and to everyone who reviewed my work: Jonathan Cameron, Andy Shevchenko, Jean-Baptiste Maneyrol, Joshua Crofts, Nuno Sá, Maxwell Doose, Tzung-Bi Shih, Simon Horman, Alex Austin, Paolo Abeni and Geert Uytterhoeven. Each of these patches is better because of them.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/arnavk23\.github\.io");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>© Arnav Kapoor, 2026</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>
