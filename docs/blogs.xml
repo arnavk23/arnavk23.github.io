@@ -10,7 +10,698 @@
 <atom:link href="https://arnavk23.github.io/blogs.xml" rel="self" type="application/rss+xml"/>
 <description>Computer Science at IISER Bhopal. Quantum information, optimization in Julia, and the Linux kernel.</description>
 <generator>quarto-1.10.19</generator>
-<lastBuildDate>Wed, 21 Oct 2026 18:30:00 GMT</lastBuildDate>
+<lastBuildDate>Sun, 25 Oct 2026 18:30:00 GMT</lastBuildDate>
+<item>
+  <title>A NAK, Some Homework, and Four More Fixes</title>
+  <dc:creator>Arnav Kapoor</dc:creator>
+  <link>https://arnavk23.github.io/posts/2026-10-26-sx93xx-fixes/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<p>A few days ago I <a href="../../posts/2026-10-22-lfx-kernel-mentorship/index.html">wrote</a> that kernel maintainers were much kinder than their reputation. This week a review of mine included the word “NAK”, followed by a homework assignment. I still stand by what I wrote.</p>
+<p>Between 22 and 26 October, Jonathan Cameron applied four more of my patches to the <code>fixes-togreg</code> branch of <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/"><code>iio.git</code></a>. Three are in the Semtech SX9xxx capacitive proximity drivers (<code>sx9324</code>, <code>sx9360</code> and <code>sx9500</code>). The fourth is in the Microchip <code>mcp3564</code> ADC driver. All four are bug fixes with a <code>Fixes:</code> tag, and three of them are marked for stable kernels. Andy Shevchenko reviewed three of the four, and each review changed the patch for the better.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-timeline" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-timeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-timeline">gantt
+    todayMarker off
+    dateFormat YYYY-MM-DD HH:mm
+    axisFormat %d %b
+    section sx9324
+    v1 in review (NAK + homework) :done, 2026-10-22 04:24, 2026-10-24 00:56
+    v2                            :active, 2026-10-24 00:56, 2026-10-24 07:27
+    applied                       :milestone, 2026-10-24 07:27, 0d
+    section mcp3564
+    v1 in review (Reviewed-by)    :done, 2026-10-22 04:24, 2026-10-24 00:28
+    v2                            :active, 2026-10-24 00:28, 2026-10-24 07:28
+    applied                       :milestone, 2026-10-24 07:28, 0d
+    section sx9360
+    v1 in review                  :done, 2026-10-24 23:31, 2026-10-26 03:42
+    v2                            :active, 2026-10-26 03:42, 2026-10-26 03:57
+    applied                       :milestone, 2026-10-26 03:57, 0d
+    section sx9500
+    v1                            :active, 2026-10-24 23:26, 2026-10-26 05:07
+    applied                       :milestone, 2026-10-26 05:07, 0d
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-timeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: The four patches, from first submission to application (times in IST). Two of them needed a v2 after review; the sx9500 fix was applied as sent.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<section id="sx9324-a-table-that-was-half-as-long-as-it-should-be" class="level2">
+<h2 class="anchored" data-anchor-id="sx9324-a-table-that-was-half-as-long-as-it-should-be">sx9324: a table that was half as long as it should be</h2>
+<p>The SX9324 polls for new samples when it has no interrupt line. To decide how long to sleep, the driver reads the scan period code from a register and uses it as an index into a table:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb1-1"><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">static</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span> sx9324_wait_for_sample<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">struct</span> sx_common_data <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span>data<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span></span>
+<span id="cb1-2"><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb1-3">    <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">...</span></span>
+<span id="cb1-4">    val <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> FIELD_GET<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>SX9324_REG_GNRL_CTRL0_SCANPERIOD_MASK<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> val<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">);</span></span>
+<span id="cb1-5"></span>
+<span id="cb1-6">    msleep<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>sx9324_scan_period_table<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">[</span>val<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">]);</span></span>
+<span id="cb1-7">    <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">...</span></span>
+<span id="cb1-8"><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span></span></code></pre></div></div>
+<p>The <code>SCANPERIOD</code> field is 5 bits wide, so it has 32 possible codes. The table had 16 entries. It had been copied from the SX9310 driver, where the same field is only 4 bits wide. Every code from <code>0x10</code> to <code>0x1f</code> read past the end of the array, and the chip’s reset default is <code>0x16</code> (100 ms). In other words, a polled SX9324 with the default configuration slept for whatever number happened to sit in memory after the table.</p>
+<div id="fig-sx9324" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-sx9324-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://arnavk23.github.io/posts/2026-10-26-sx93xx-fixes/sx9324_table.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-sx9324-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: The scan period table before and after the fix. The old table covers only the first 16 codes; the reset default, <code>0x16</code>, is one of the codes that read past its end. The new values come from the period comments on the driver’s existing <code>sx9324_samp_freq_table[]</code>.
+</figcaption>
+</figure>
+</div>
+<p>The fix seemed simple: fill in all 32 periods, which the driver already documented in the comments of its <code>sx9324_samp_freq_table[]</code>, and add a <code>static_assert()</code> so the two tables can never disagree in length again. My v1 packed the 32 values into three lines, as tightly as they would fit. Andy’s reply was short:</p>
+<blockquote class="blockquote">
+<p>NAK to this hunk.<br>
+Homework:<br>
+read my comments regarding formatting such arrays in linux-iio@ mailing list<br>
+for last calendar year or so and summarize the idea.</p>
+</blockquote>
+<p>That was my first NAK. To be honest it stung for a minute, and then I realised it was one of the most useful replies I had received. Andy hadn’t rewritten the table for me. He told me where the answer was and trusted me to find it. I replied within a few minutes to say I would do the homework.</p>
+<p>I keep a local git mirror of the <a href="https://lore.kernel.org/linux-iio/">linux-iio archive</a>, so the homework was a search through a year of Andy’s reviews. The idea turned up again and again, most clearly in a <a href="https://lore.kernel.org/all/aRITLaJir-2IoclU@smile.fi.intel.com/">November 2025 review</a> of a new frequency driver:</p>
+<blockquote class="blockquote">
+<p>Make it power-of-two items per line, even with the comments to show the indexing, like<br>
+<code>810, 1620, 2430, 3240, 4050, 4860, 5670, 6480,   /* 0 - 7 */</code></p>
+</blockquote>
+<p>Once I saw it, the reason was obvious. This table is indexed by a register value, so a reader has to be able to answer “what is entry <code>0x13</code>?” at a glance. With eight entries per line and the code range in a comment, you can. With values packed to fill the line, you have to count, and a typo can hide for years. The v2 looked like this:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb2-1"><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">static</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">const</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">unsigned</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">int</span> sx9324_scan_period_table<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">[]</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb2-2">    <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">8</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">14</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">18</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span>          <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/* 0x00 - 0x07 */</span></span>
+<span id="cb2-3">    <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">22</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">26</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">30</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">34</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">38</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">42</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">46</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">50</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span>         <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/* 0x08 - 0x0f */</span></span>
+<span id="cb2-4">    <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">56</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">62</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">68</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">74</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">80</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">90</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">200</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span>       <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/* 0x10 - 0x17 */</span></span>
+<span id="cb2-5">    <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">300</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">400</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">600</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">800</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1000</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2000</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3000</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4000</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span> <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/* 0x18 - 0x1f */</span></span>
+<span id="cb2-6"><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">};</span></span>
+<span id="cb2-7"></span>
+<span id="cb2-8"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">static_assert</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>ARRAY_SIZE<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>sx9324_scan_period_table<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> ARRAY_SIZE<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>sx9324_samp_freq_table<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">));</span></span></code></pre></div></div>
+<p>I also put the <code>static_assert()</code> on one line, as Andy suggested (“I would dare make it a single line”), added the <code>Fixes:</code> tag and <code>Cc: stable</code>, and rebased on <code>fixes-togreg</code>. Jonathan applied it a few hours after I sent it:</p>
+<blockquote class="blockquote">
+<p>Looks good and matches what Andy asked about.</p>
+<p>Applied to the fixes-togreg branch of iio.git.</p>
+</blockquote>
+<p>Andy’s review of v2 arrived later that day. It had one more nit (“5 bit wide” should be “5-bit wide”) and ended with:</p>
+<blockquote class="blockquote">
+<p>Haven’t checked if this is part of any ABI. Otherwise LGTM,<br>
+Reviewed-by: Andy Shevchenko &lt;andriy.shevchenko@intel.com&gt;</p>
+</blockquote>
+<p>Jonathan didn’t ask me for a v3 to fix a hyphen. He replied “Tweaked and tagged.” and fixed it himself in his tree. Going from NAK to <code>Reviewed-by:</code> in two days, with the maintainer cleaning up the last nit for me, felt like a real reward for doing the homework properly.</p>
+</section>
+<section id="mcp3564-a-null-pointer-behind-a-fallback" class="level2">
+<h2 class="anchored" data-anchor-id="mcp3564-a-null-pointer-behind-a-fallback">mcp3564: a NULL pointer behind a fallback</h2>
+<p>The MCP3564 driver identifies its chip by reading ID registers. If the ID is not one it knows, for example on a newer part number, it falls back to the match data from the device tree:</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-mcp3564" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-mcp3564-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-mcp3564">flowchart TD
+    A[Read chip ID registers] --&gt; B{Known ID?}
+    B -- yes --&gt; C[chip_info from the driver's table]
+    B -- no --&gt; D["spi_get_device_match_data()"]
+    D --&gt; E{NULL?}
+    E -- "no: DT or id-table match" --&gt; F[use chip_info]
+    E -- "yes: bound via driver_override" --&gt; G["before: oops on chip_info-&gt;have_vref&lt;br/&gt;after: return -ENODATA"]
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mcp3564-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: The probe path in mcp3564_config(). The fallback was the only path that didn’t check its result.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><code>spi_get_device_match_data()</code> returns NULL when the device was bound with <code>driver_override</code> and its name isn’t in the driver’s id table. The driver dereferenced the result unconditionally, so that case ended in a kernel oops. The fix is three lines:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode diff code-with-copy"><code class="sourceCode diff"><span id="cb3-1">        adc-&gt;chip_info = spi_get_device_match_data(adc-&gt;spi);</span>
+<span id="cb3-2"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">+       if (!adc-&gt;chip_info)</span></span>
+<span id="cb3-3"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">+           return -ENODATA;</span></span>
+<span id="cb3-4"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb3-5">        adc-&gt;have_vref = adc-&gt;chip_info-&gt;have_vref;</span></code></pre></div></div>
+<p>Andy gave it a <code>Reviewed-by:</code> on v1, together with a request and a thought about the bigger picture:</p>
+<blockquote class="blockquote">
+<p>Fine, but I hope we will have something to land to actually do it differently for the drivers that don’t want to use driver_override mechanism.</p>
+<p>Reviewed-by: Andy Shevchenko &lt;andriy.shevchenko@intel.com&gt;<br>
+Please, shrink the commit message to the point.</p>
+</blockquote>
+<p>He was right on both counts. A NULL check in every driver is a stopgap, not a design. And my v1 commit message took four paragraphs to say something that fits in one. The v2 message is half as long:</p>
+<blockquote class="blockquote">
+<p>When the chip can’t be identified from its ID registers, the driver falls back to spi_get_device_match_data() and dereferences the result unconditionally. That returns NULL for a device bound through driver_override whose name isn’t in the id table, causing an oops.</p>
+<p>Return -ENODATA in that case.</p>
+</blockquote>
+<p>That taught me to write the shortest message that still explains the bug. Jonathan replied with a single word, “Applied”, which is my favourite word on the list.</p>
+</section>
+<section id="sx9360-a-frequency-that-always-became-zero" class="level2">
+<h2 class="anchored" data-anchor-id="sx9360-a-frequency-that-always-became-zero">sx9360: a frequency that always became zero</h2>
+<p>The SX9360 stores its scan period in two registers, <code>GNRL_CTRL1</code> and <code>GNRL_CTRL2</code>, as an 11-bit count of ticks. One tick is 8192 cycles of the 4 MHz oscillator. So the period for a frequency <em>f</em> is</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Ctext%7Bperiod%7D%20=%20%5Cfrac%7BF_%5Ctext%7BOSC%7D%7D%7B8192%20%5Ccdot%20f%7D.%0A"></p>
+<p>The driver’s write function had the fraction upside down, and it scaled the micro-hertz part of the value wrongly:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb4-1">reg <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> val <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">8192</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> SX9360_FOSC_HZ <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> val2 <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">8192</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>SX9360_FOSC_MHZ<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">);</span></span></code></pre></div></div>
+<p>For any frequency the chip supports, <code>val * 8192 / 4000000</code> is 0 in integer arithmetic. The <code>val2</code> term always produces a multiple of 2048, so it never reaches the 11-bit period field, but it does spill into the bits of <code>GNRL_CTRL1</code> above it. Above about 0.26 Hz of fractional part it also overflows an <code>int</code>. To make sure, I replayed both formulas for every frequency the driver advertises:</p>
+<div id="fig-sx9360" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-sx9360-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://arnavk23.github.io/posts/2026-10-26-sx93xx-fixes/sx9360_freq.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-sx9360-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: The scan period programmed for each requested frequency. After the fix, the period follows FOSC / (8192 · f) across the whole 1 to 2047 tick range. Before the fix, the period field is 0 for every request, and for most of them stray bits are written to the upper part of <code>GNRL_CTRL1</code>.
+</figcaption>
+</figure>
+</div>
+<p>The new code computes the period the right way up, rounds to the closest tick, and rejects frequencies the chip can’t represent. While I was there, I noticed the advertised range didn’t match the comments next to it either: 4 MHz / 8192 is 488.28125 Hz, not 448.28125 Hz, and the minimum and step were wrong too. Before sending v1, I also checked in userspace that the default 102 ms period survived the round trip: 9.765625 Hz → period 50 → 9.765625 Hz.</p>
+<p>Andy’s review of v1 was a series of short, precise questions:</p>
+<blockquote class="blockquote">
+<p><code>unsigned int period;</code></p>
+<p>What’s the units for period? Seconds?</p>
+</blockquote>
+<blockquote class="blockquote">
+<p><code>u64 freq_uhz;</code></p>
+<p>_uHz</p>
+</blockquote>
+<blockquote class="blockquote">
+<p><code>freq_uhz = (u64)val * MICRO + val2;</code></p>
+<p>Read what units.h has for units of Hz.</p>
+</blockquote>
+<blockquote class="blockquote">
+<p>Missing blank line. Always make guard()() to be standalone in the code.</p>
+</blockquote>
+<p>None of these change what the code does, but each makes it easier to read. A variable called <code>period</code> in a function full of hertz and oscillator cycles <em>should</em> make a reader ask “in what?”. <code>MICRO</code> is a plain number, while <code>MICROHZ_PER_HZ</code> from <code>&lt;linux/units.h&gt;</code> says what it is converting. So v2 renamed the variable to <code>period_ticks</code>, said in a comment what a tick is, switched to <code>freq_uHz</code> and <code>MICROHZ_PER_HZ</code>, and gave <code>guard(mutex)</code> a line of its own:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb5-1">    freq_uHz <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>u64<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>val <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> MICROHZ_PER_HZ <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> val2<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb5-2">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(!</span>freq_uHz<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span></span>
+<span id="cb5-3">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span>EINVAL<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb5-4"></span>
+<span id="cb5-5">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/* The register holds the scan period in ticks of 8192 FOSC cycles. */</span></span>
+<span id="cb5-6">    period_ticks <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> DIV64_U64_ROUND_CLOSEST<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">((</span>u64<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>SX9360_FOSC_HZ <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> MICROHZ_PER_HZ<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-7">                           freq_uHz <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">8192</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">);</span></span>
+<span id="cb5-8">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(!</span>period_ticks <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">||</span> period_ticks <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;</span> SX9360_REG_GNRL_SCANPERIOD_MAX<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span></span>
+<span id="cb5-9">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span>EINVAL<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span>
+<span id="cb5-10"></span>
+<span id="cb5-11">    buf <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> cpu_to_be16<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>period_ticks<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">);</span></span>
+<span id="cb5-12"></span>
+<span id="cb5-13">    guard<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>mutex<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)(&amp;</span>data<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-&gt;</span>mutex<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">);</span></span></code></pre></div></div>
+<p>Andy also suggested that “at some point” the frequency table should become a plain array of ints. That is a cleanup rather than a fix, so I left it for a separate patch and said so below the <code>---</code> line. Fifteen minutes after I sent v2, Jonathan replied:</p>
+<blockquote class="blockquote">
+<p>Seems like you’ve addressed Andy’s comments (except for the ‘at some point’ one which is fine to leave for now). Looks good to me, so rather than keep track of this one I’m going to speculatively apply it to the fixes-togreg branch of iio.git and mark it for stable.</p>
+</blockquote>
+<p>“Rather than keep track of this one” is a small phrase, but it says a lot. A maintainer has hundreds of threads to track, and a patch that clearly answers every review comment is one he can take off his list straight away. Writing a precise changelog is how I can make that easier for him.</p>
+</section>
+<section id="sx9500-reference-counts-that-drift" class="level2">
+<h2 class="anchored" data-anchor-id="sx9500-reference-counts-that-drift">sx9500: reference counts that drift</h2>
+<p>The SX9500 driver keeps reference counts of who is using each channel and the close/far interrupt. A channel is powered on when its count goes from 0 to 1, and off when it drops back to 0. <code>sx9500_write_event_config()</code> incremented or decremented these counts on <em>every</em> write to an event’s <code>en</code> attribute, even when the event was already in the requested state.</p>
+<p>That lets the counts drift away from reality. Writing 0 to an event that is already disabled takes the count to −1. A following write of 1 brings it back to 0, which is not the 0 → 1 transition that turns the channel on. The event now reads as enabled, but the channel and its interrupt are off. Because raw reads share <code>channel_users[]</code>, a raw read can then wait forever for a conversion that never starts. Writing 1 twice and then 0 does the opposite: the event reads as disabled but the channel stays on.</p>
+<div id="fig-sx9500" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-sx9500-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://arnavk23.github.io/posts/2026-10-26-sx93xx-fixes/sx9500_counts.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-sx9500-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: <code>channel_users[]</code> for two write sequences. Before the fix (red), redundant writes move the count, and the event state and channel power end up disagreeing. After the fix (blue, dashed), a write that doesn’t change state returns early.
+</figcaption>
+</figure>
+</div>
+<p>The newer SX9xxx drivers share <code>sx_common_write_event_config()</code>, which already returns early when the state doesn’t change. The SX9500 predates that common code, so the fix brings it in line:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode diff code-with-copy"><code class="sourceCode diff"><span id="cb6-1">    mutex_lock(&amp;data-&gt;mutex);</span>
+<span id="cb6-2"></span>
+<span id="cb6-3"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">+   /* The user counts must only change when the state does. */</span></span>
+<span id="cb6-4"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">+   if (data-&gt;event_enabled[chan-&gt;channel] == state) {</span></span>
+<span id="cb6-5"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">+       ret = 0;</span></span>
+<span id="cb6-6"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">+       goto out_unlock;</span></span>
+<span id="cb6-7"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">+   }</span></span>
+<span id="cb6-8"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb6-9">    if (state) {</span></code></pre></div></div>
+<p>I don’t have SX9500 hardware, so I checked both write sequences with a userspace model of the counting and said exactly that below the <code>---</code> line. This was the only one of the four that went in as first sent. Jonathan’s reply in full:</p>
+<blockquote class="blockquote">
+<p>Applied and marked for stable.</p>
+<p>thanks</p>
+<p>Jonathan</p>
+</blockquote>
+<p>I hadn’t added <code>Cc: stable</code> to this one. Jonathan decided it deserved a backport and added the tag himself.</p>
+</section>
+<section id="what-these-reviews-taught-me" class="level2">
+<h2 class="anchored" data-anchor-id="what-these-reviews-taught-me">What these reviews taught me</h2>
+<p>Looking back over the four threads, very few of the review comments were about whether the code worked. They were about whether the <em>next</em> person could read it:</p>
+<div id="tbl-review" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-review-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: The review comments on the four patches, and how each was addressed.
+</figcaption>
+<div aria-describedby="tbl-review-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Patch</th>
+<th>Review comment</th>
+<th>What I changed</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>sx9324</td>
+<td>Table formatting: NAK + homework</td>
+<td>8 entries per line with index comments</td>
+</tr>
+<tr class="even">
+<td>sx9324</td>
+<td><code>static_assert()</code> on one line</td>
+<td>Joined the line</td>
+</tr>
+<tr class="odd">
+<td>sx9324</td>
+<td>“5 bit” → “5-bit”</td>
+<td>Jonathan fixed it while applying</td>
+</tr>
+<tr class="even">
+<td>mcp3564</td>
+<td>“Shrink the commit message to the point”</td>
+<td>Four paragraphs → two</td>
+</tr>
+<tr class="odd">
+<td>sx9360</td>
+<td>Units for <code>period</code>?</td>
+<td><code>period_ticks</code> and a comment saying what a tick is</td>
+</tr>
+<tr class="even">
+<td>sx9360</td>
+<td><code>_uHz</code>, use <code>units.h</code></td>
+<td><code>freq_uHz</code>, <code>MICROHZ_PER_HZ</code></td>
+</tr>
+<tr class="odd">
+<td>sx9360</td>
+<td><code>guard()()</code> must stand alone</td>
+<td>Added a blank line</td>
+</tr>
+<tr class="even">
+<td>sx9360</td>
+<td>Table should be a plain int array</td>
+<td>Deferred to a later cleanup, with agreement</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>A few habits came out of this week:</p>
+<ul>
+<li><strong>When a reviewer points you at the archive, read the archive.</strong> Andy’s homework took me longer than rewriting the table myself would have. But now I know a rule he applies to every indexed table, and I won’t need to be told again.</li>
+<li><strong>Units belong in names.</strong> <code>period_ticks</code>, <code>freq_uHz</code> and <code>MICROHZ_PER_HZ</code> make the code document itself.</li>
+<li><strong>The changelog is part of the patch.</strong> Each v2 listed every comment and who made it, and said what I hadn’t done and why. That is what let Jonathan apply the sx9360 fix fifteen minutes after it arrived.</li>
+<li><strong>Say what you tested.</strong> All four patches say “Compile-tested only” under the <code>---</code> line, along with whatever checking I could do without the hardware. Maintainers can only judge the risk of a patch if you’re honest about this.</li>
+</ul>
+</section>
+<section id="results" class="level2">
+<h2 class="anchored" data-anchor-id="results">Results</h2>
+<div id="tbl-results" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-results-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;2: The four patches applied this week. Jonathan plans to rebase <code>fixes-togreg</code> on rc1, so the commit IDs may change.
+</figcaption>
+<div aria-describedby="tbl-results-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Patch</th>
+<th>Tree</th>
+<th>Reviewed by</th>
+<th>Links</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>sx9324: fix out-of-bounds read of scan period table</td>
+<td>iio fixes, stable</td>
+<td>Andy Shevchenko</td>
+<td><a href="https://lore.kernel.org/all/20261021225417.626946-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261023192700.221344-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=9cc70d11f23c">commit</a></td>
+</tr>
+<tr class="even">
+<td>mcp3564: reject devices without match data</td>
+<td>iio fixes</td>
+<td>Andy Shevchenko</td>
+<td><a href="https://lore.kernel.org/all/20261021225431.627718-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261023185837.195943-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=bee7b8b5c5d0">commit</a></td>
+</tr>
+<tr class="odd">
+<td>sx9360: fix sampling frequency write and available range</td>
+<td>iio fixes, stable</td>
+<td>Andy Shevchenko (v1)</td>
+<td><a href="https://lore.kernel.org/all/20261024180149.144609-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261025221241.19596-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=065605c6a43b">commit</a></td>
+</tr>
+<tr class="even">
+<td>sx9500: ignore event config writes that don’t change state</td>
+<td>iio fixes, stable</td>
+<td>—</td>
+<td><a href="https://lore.kernel.org/all/20261024175658.130546-1-kapoorarnav43@gmail.com/">patch</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=09f742b49cb2">commit</a></td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>That brings my total to thirteen applied patches. I have a few more SX9xxx patches on the list as I write this, a series that keeps the IRQ balanced across suspend and resume, and a hysteresis fix for the <code>sx9310</code>, so this family of drivers may get one more post.</p>
+</section>
+<section id="acknowledgements" class="level2">
+<h2 class="anchored" data-anchor-id="acknowledgements">Acknowledgements</h2>
+<p>Thank you to Andy Shevchenko, whose reviews are short, exact and always worth reading twice, and to Jonathan Cameron for his patience, his speed, and for fixing my hyphens. Thanks also to Shuah Khan for the mentorship that got me here.</p>
+
+
+</section>
+
+ ]]></description>
+  <category>linux-kernel</category>
+  <category>lfx</category>
+  <category>iio</category>
+  <category>open-source</category>
+  <guid>https://arnavk23.github.io/posts/2026-10-26-sx93xx-fixes/</guid>
+  <pubDate>Sun, 25 Oct 2026 18:30:00 GMT</pubDate>
+  <media:content url="https://arnavk23.github.io/posts/2026-10-26-sx93xx-fixes/sx9324_table.png" medium="image" type="image/png" height="49" width="144"/>
+</item>
 <item>
   <title>Learnings from LKMP: How to contribute to the Linux Kernel</title>
   <dc:creator>Arnav Kapoor</dc:creator>
