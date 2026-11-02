@@ -12,7 +12,7 @@
 <generator>quarto-1.10.19</generator>
 <lastBuildDate>Sun, 25 Oct 2026 18:30:00 GMT</lastBuildDate>
 <item>
-  <title>A NAK, Some Homework, and Four More Fixes</title>
+  <title>A NAK, Some Homework, and Five More Fixes</title>
   <dc:creator>Arnav Kapoor</dc:creator>
   <link>https://arnavk23.github.io/posts/2026-10-26-sx93xx-fixes/</link>
   <description><![CDATA[ 
@@ -22,7 +22,8 @@
 
 
 <p>A few days ago I <a href="../../posts/2026-10-22-lfx-kernel-mentorship/index.html">wrote</a> that kernel maintainers were much kinder than their reputation. This week a review of mine included the word “NAK”, followed by a homework assignment. I still stand by what I wrote.</p>
-<p>Between 22 and 26 October, Jonathan Cameron applied four more of my patches to the <code>fixes-togreg</code> branch of <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/"><code>iio.git</code></a>. Three are in the Semtech SX9xxx capacitive proximity drivers (<code>sx9324</code>, <code>sx9360</code> and <code>sx9500</code>). The fourth is in the Microchip <code>mcp3564</code> ADC driver. All four are bug fixes with a <code>Fixes:</code> tag, and three of them are marked for stable kernels. Andy Shevchenko reviewed three of the four, and each review changed the patch for the better.</p>
+<p>Between 22 and 26 October, Jonathan Cameron applied four more of my patches to the <code>fixes-togreg</code> branch of <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/"><code>iio.git</code></a>. Three are in the Semtech SX9xxx capacitive proximity drivers (<code>sx9324</code>, <code>sx9360</code> and <code>sx9500</code>). The fourth is in the Microchip <code>mcp3564</code> ADC driver. A fifth patch, an overflow fix in the IIO core’s number parser, followed on 2 November and went to the <code>testing</code> branch. All five are bug fixes with a <code>Fixes:</code> tag, and four of them are marked for stable kernels. Andy Shevchenko reviewed four of the five, and each review changed the patch for the better.</p>
+<p><em>Updated 2 November 2026 with the <code>iio_str_to_fixpoint()</code> fix.</em></p>
 <div class="cell" data-layout-align="default">
 <div class="cell-output-display">
 <div id="fig-timeline" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -48,11 +49,15 @@
     section sx9500
     v1                            :active, 2026-10-24 23:26, 2026-10-26 05:07
     applied                       :milestone, 2026-10-26 05:07, 0d
+    section iio core
+    v1 in review                  :done, 2026-10-22 04:22, 2026-10-22 19:33
+    v2 (Reviewed-by, then waiting) :active, 2026-10-22 19:33, 2026-11-02 05:10
+    applied                       :milestone, 2026-11-02 05:10, 0d
 </pre>
 </div>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-timeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: The four patches, from first submission to application (times in IST). Two of them needed a v2 after review; the sx9500 fix was applied as sent.
+Figure&nbsp;1: The five patches, from first submission to application (times in IST). Three of them needed a v2 after review; the sx9500 fix was applied as sent.
 </figcaption>
 </figure>
 </div>
@@ -553,7 +558,7 @@ font-style: inherit;">+   }</span></span>
 background-color: null;
 font-style: inherit;">+</span></span>
 <span id="cb6-9">    if (state) {</span></code></pre></div></div>
-<p>I don’t have SX9500 hardware, so I checked both write sequences with a userspace model of the counting and said exactly that below the <code>---</code> line. This was the only one of the four that went in as first sent. Jonathan’s reply in full:</p>
+<p>I don’t have SX9500 hardware, so I checked both write sequences with a userspace model of the counting and said exactly that below the <code>---</code> line. This was the only one of the five that went in as first sent. Jonathan’s reply in full:</p>
 <blockquote class="blockquote">
 <p>Applied and marked for stable.</p>
 <p>thanks</p>
@@ -561,13 +566,105 @@ font-style: inherit;">+</span></span>
 </blockquote>
 <p>I hadn’t added <code>Cc: stable</code> to this one. Jonathan decided it deserved a backport and added the tag himself.</p>
 </section>
+<section id="iio-core-a-parser-that-didnt-check-for-overflow" class="level2">
+<h2 class="anchored" data-anchor-id="iio-core-a-parser-that-didnt-check-for-overflow">iio core: a parser that didn’t check for overflow</h2>
+<p>Every IIO attribute that accepts a fractional value, such as <code>sampling_frequency</code> or <code>in_voltage_scale</code>, goes through <code>iio_str_to_fixpoint()</code>. It splits a string like <code>"12.345"</code> into an integer part and a fractional part, and many drivers also call it directly. The integer part was accumulated one digit at a time into an <code>int</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb7-1">i <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> i <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span>str <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> <span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'0'</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span></code></pre></div></div>
+<p>Nothing checked whether <code>i</code> still fitted. Write <code>"99999999999999999999"</code> to one of these attributes and the multiplication overflows. Signed overflow in C is undefined behaviour, so the driver was handed whatever value the compiler’s arithmetic happened to produce. As Jonathan pointed out later, nothing crashes. The bug is that a value nobody wrote reaches the hardware instead of an error.</p>
+<p>My v1 took the obvious route: accumulate into an <code>s64</code>, compare against a limit after each digit, and cast back to <code>int</code> at the end. Because the sign was applied only after the whole string had been parsed, the limit had to depend on the sign:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb8-1">limit <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> negative <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">?</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>s64<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span>INT_MAX <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span> INT_MAX<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">;</span></span></code></pre></div></div>
+<p>Andy’s review went through it line by line:</p>
+<blockquote class="blockquote">
+<p>Wow, what’s wrong with INT_MIN?</p>
+</blockquote>
+<blockquote class="blockquote">
+<p>Why do you need explicit castings?</p>
+</blockquote>
+<blockquote class="blockquote">
+<p>Do you know about APIs in overflow.h? I think you wanted to use something from there.</p>
+</blockquote>
+<p>He also asked for a <code>Fixes:</code> tag, noting that without one the patch might not be needed at all, since Rodrigo Alencar was reworking this parser to support E notation. The <code>(s64)INT_MAX + 1</code> was the giveaway. I had worked around the sign handling when I should have changed it. <code>&lt;linux/overflow.h&gt;</code> has <code>check_mul_overflow()</code> and <code>check_add_overflow()</code>, which do the arithmetic and report whether it overflowed. If the sign is applied to each digit as it is added, the integer part never needs to be bigger than an <code>int</code>, and <code>INT_MIN</code> parses with no special case:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode diff code-with-copy"><code class="sourceCode diff"><span id="cb9-1">            if (integer_part) {</span>
+<span id="cb9-2"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">-               i = i * 10 + *str - '0';</span></span>
+<span id="cb9-3"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">+               int digit = *str - '0';</span></span>
+<span id="cb9-4"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb9-5"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">+               /* Accumulate with the sign applied so INT_MIN fits */</span></span>
+<span id="cb9-6"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">+               if (check_mul_overflow(i, 10, &amp;i) ||</span></span>
+<span id="cb9-7"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">+                   check_add_overflow(i, negative ? -digit : digit, &amp;i))</span></span>
+<span id="cb9-8"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">+                   return -ERANGE;</span></span>
+<span id="cb9-9">            } else {</span></code></pre></div></div>
+<p>The <code>s64</code>, the limit, the casts and the declaration reordering Andy asked for all disappeared. The v2 changed 16 lines where v1 changed 23. The sign fix-up at the end shrank too. Only a value like <code>"-0.5"</code>, whose integer part is zero, still needs the sign moved onto the fractional part.</p>
+<p>Andy had also suggested borrowing Rodrigo’s test cases. I replied that those tests target the new <code>kstrtodec64()</code> rather than the current parser, and offered to write KUnit tests for <code>iio_str_to_fixpoint()</code> separately. Rodrigo explained that this wasn’t worth doing:</p>
+<blockquote class="blockquote">
+<p>The current parser is being dropped in the E notation series, so that overflow concerns are handled differently. […] With that, not sure you need a KUnit test for the current parser. Only small fix meant for backporting would make sense to me.</p>
+</blockquote>
+<p>So v2 stayed small. Instead of KUnit tests, I tested the function in userspace, built with <code>-fsanitize=undefined</code>, on the inputs at the edges: <code>"2147483647"</code>, <code>"2147483648"</code>, <code>"-2147483648"</code>, <code>"-2147483649"</code>, <code>"99999999999999999999"</code>, <code>"-0.5"</code> and <code>"12.345\n"</code>. Every input that fits in an <code>int</code> parses exactly as before, and the ones that don’t now return <code>-ERANGE</code>. Nuno Sá reviewed v2 the next morning:</p>
+<blockquote class="blockquote">
+<p>LGTM (maybe a Cc to stable next time but Jonathan typically takes care of that),</p>
+<p>Reviewed-by: Nuno Sá &lt;nuno.sa@analog.com&gt;</p>
+</blockquote>
+<p>Then nothing happened for ten days, which is normal before a merge window. When Jonathan did reply, it was the most interesting reply of the five, because he explained his decision in the open:</p>
+<blockquote class="blockquote">
+<p>In in two minds about this. It is preventing unintuitive behaviour but we shouldn’t have any cases that crash or anything like that.</p>
+<p>Given the code in question is likely to be replaced shortly anyway by Rodrigo’s rework applying this for backporting purposes makes me nervous even though it looks fine. I also don’t want to delay Rodrigo’s work by having this go in via a different branch.</p>
+<p>So perhaps the worst possible compromise. Applied to the testing branch of iio.git (which I’ll rebase on rc1 shortly) and marked for stable.</p>
+<p>Rodrigo, you are going to need to rebase your series on top of this.</p>
+</blockquote>
+<p>Getting the code right was only part of it. Jonathan also had to weigh the risk of a backport against a bug that doesn’t crash anything, and to fit the patch around someone else’s larger series. His answer was to take it through the development branch rather than <code>fixes-togreg</code>, so Rodrigo could rebase on top of it, while still marking it for stable. I didn’t know about any of these trade-offs when I sent v1.</p>
+</section>
 <section id="what-these-reviews-taught-me" class="level2">
 <h2 class="anchored" data-anchor-id="what-these-reviews-taught-me">What these reviews taught me</h2>
-<p>Looking back over the four threads, very few of the review comments were about whether the code worked. They were about whether the <em>next</em> person could read it:</p>
+<p>Looking back over the five threads, very few of the review comments were about whether the code worked. They were about whether the <em>next</em> person could read it:</p>
 <div id="tbl-review" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-review-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;1: The review comments on the four patches, and how each was addressed.
+Table&nbsp;1: The review comments on the five patches, and how each was addressed.
 </figcaption>
 <div aria-describedby="tbl-review-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -624,6 +721,26 @@ Table&nbsp;1: The review comments on the four patches, and how each was addresse
 <td>Table should be a plain int array</td>
 <td>Deferred to a later cleanup, with agreement</td>
 </tr>
+<tr class="odd">
+<td>iio core</td>
+<td>“What’s wrong with INT_MIN?”</td>
+<td>Applied the sign per digit, so INT_MIN needs no special case</td>
+</tr>
+<tr class="even">
+<td>iio core</td>
+<td>Use <code>overflow.h</code>, drop the casts</td>
+<td><code>check_mul_overflow()</code> / <code>check_add_overflow()</code> on plain <code>int</code>s</td>
+</tr>
+<tr class="odd">
+<td>iio core</td>
+<td>Add a <code>Fixes:</code> tag</td>
+<td>Added</td>
+</tr>
+<tr class="even">
+<td>iio core</td>
+<td>Add tests?</td>
+<td>Left out after Rodrigo explained the parser is being replaced</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -634,7 +751,8 @@ Table&nbsp;1: The review comments on the four patches, and how each was addresse
 <li><strong>When a reviewer points you at the archive, read the archive.</strong> Andy’s homework took me longer than rewriting the table myself would have. But now I know a rule he applies to every indexed table, and I won’t need to be told again.</li>
 <li><strong>Units belong in names.</strong> <code>period_ticks</code>, <code>freq_uHz</code> and <code>MICROHZ_PER_HZ</code> make the code document itself.</li>
 <li><strong>The changelog is part of the patch.</strong> Each v2 listed every comment and who made it, and said what I hadn’t done and why. That is what let Jonathan apply the sx9360 fix fifteen minutes after it arrived.</li>
-<li><strong>Say what you tested.</strong> All four patches say “Compile-tested only” under the <code>---</code> line, along with whatever checking I could do without the hardware. Maintainers can only judge the risk of a patch if you’re honest about this.</li>
+<li><strong>Look for a helper before writing one.</strong> My v1 overflow checks were correct, but <code>overflow.h</code> already had them. Using the helper made v2 shorter and easier to review.</li>
+<li><strong>Say what you tested.</strong> All five patches say “Compile-tested only” under the <code>---</code> line, along with whatever checking I could do without the hardware. Maintainers can only judge the risk of a patch if you’re honest about this.</li>
 </ul>
 </section>
 <section id="results" class="level2">
@@ -642,7 +760,7 @@ Table&nbsp;1: The review comments on the four patches, and how each was addresse
 <div id="tbl-results" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-results-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;2: The four patches applied this week. Jonathan plans to rebase <code>fixes-togreg</code> on rc1, so the commit IDs may change.
+Table&nbsp;2: The five patches. Jonathan plans to rebase <code>fixes-togreg</code> and <code>testing</code> on rc1, so the commit IDs may change; the core fix isn’t public yet, so it has no commit link.
 </figcaption>
 <div aria-describedby="tbl-results-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -679,16 +797,22 @@ Table&nbsp;2: The four patches applied this week. Jonathan plans to rebase <code
 <td>—</td>
 <td><a href="https://lore.kernel.org/all/20261024175658.130546-1-kapoorarnav43@gmail.com/">patch</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=09f742b49cb2">commit</a></td>
 </tr>
+<tr class="odd">
+<td>core: fix signed integer overflow in <code>iio_str_to_fixpoint()</code></td>
+<td>iio testing, stable</td>
+<td>Nuno Sá</td>
+<td><a href="https://lore.kernel.org/all/20261021225306.623361-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261022140353.24213-1-kapoorarnav43@gmail.com/">v2</a></td>
+</tr>
 </tbody>
 </table>
 </div>
 </figure>
 </div>
-<p>That brings my total to thirteen applied patches. I have a few more SX9xxx patches on the list as I write this, a series that keeps the IRQ balanced across suspend and resume, and a hysteresis fix for the <code>sx9310</code>, so this family of drivers may get one more post.</p>
+<p>That brings my total to fourteen applied patches. I have a few more SX9xxx patches on the list as I write this, a series that keeps the IRQ balanced across suspend and resume, and a hysteresis fix for the <code>sx9310</code>, so this family of drivers may get one more post.</p>
 </section>
 <section id="acknowledgements" class="level2">
 <h2 class="anchored" data-anchor-id="acknowledgements">Acknowledgements</h2>
-<p>Thank you to Andy Shevchenko, whose reviews are short, exact and always worth reading twice, and to Jonathan Cameron for his patience, his speed, and for fixing my hyphens. Thanks also to Shuah Khan for the mentorship that got me here.</p>
+<p>Thank you to Andy Shevchenko, whose reviews are short, exact and always worth reading twice, to Nuno Sá and Rodrigo Alencar for their reviews of the parser fix, and to Jonathan Cameron for his patience, his speed, and for fixing my hyphens. Thanks also to Shuah Khan for the mentorship that got me here.</p>
 
 
 </section>

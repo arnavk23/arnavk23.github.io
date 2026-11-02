@@ -1,6 +1,6 @@
 ---
-title: "A NAK, Some Homework, and Four More Fixes"
-description: "Four more of my IIO patches were applied this week: three in the Semtech SX9xxx proximity drivers and one in the MCP3564 ADC. This post covers the bugs, the review that shaped each fix, and what I learned from my first NAK."
+title: "A NAK, Some Homework, and Five More Fixes"
+description: "Five more of my IIO patches were applied in the last two weeks: three in the Semtech SX9xxx proximity drivers, one in the MCP3564 ADC and one in the IIO core. This post covers the bugs, the review that shaped each fix, and what I learned from my first NAK."
 date: 2026-10-26
 draft: false
 categories: [linux-kernel, lfx, iio, open-source]
@@ -17,14 +17,17 @@ what I wrote.
 Between 22 and 26 October, Jonathan Cameron applied four more of my patches to the
 `fixes-togreg` branch of [`iio.git`](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/).
 Three are in the Semtech SX9xxx capacitive proximity drivers (`sx9324`, `sx9360`
-and `sx9500`). The fourth is in the Microchip `mcp3564` ADC driver. All four are
-bug fixes with a `Fixes:` tag, and three of them are marked for stable kernels.
-Andy Shevchenko reviewed three of the four, and each review changed the patch for
-the better.
+and `sx9500`). The fourth is in the Microchip `mcp3564` ADC driver. A fifth patch,
+an overflow fix in the IIO core's number parser, followed on 2 November and went to the
+`testing` branch. All five are bug fixes with a `Fixes:` tag, and four of them are marked
+for stable kernels. Andy Shevchenko reviewed four of the five, and each review
+changed the patch for the better.
+
+*Updated 2 November 2026 with the `iio_str_to_fixpoint()` fix.*
 
 ```{mermaid}
 %%| label: fig-timeline
-%%| fig-cap: "The four patches, from first submission to application (times in IST). Two of them needed a v2 after review; the sx9500 fix was applied as sent."
+%%| fig-cap: "The five patches, from first submission to application (times in IST). Three of them needed a v2 after review; the sx9500 fix was applied as sent."
 gantt
     todayMarker off
     dateFormat YYYY-MM-DD HH:mm
@@ -44,6 +47,10 @@ gantt
     section sx9500
     v1                            :active, 2026-10-24 23:26, 2026-10-26 05:07
     applied                       :milestone, 2026-10-26 05:07, 0d
+    section iio core
+    v1 in review                  :done, 2026-10-22 04:22, 2026-10-22 19:33
+    v2 (Reviewed-by, then waiting) :active, 2026-10-22 19:33, 2026-11-02 05:10
+    applied                       :milestone, 2026-11-02 05:10, 0d
 ```
 
 ## sx9324: a table that was half as long as it should be
@@ -317,7 +324,7 @@ so the fix brings it in line:
 
 I don't have SX9500 hardware, so I checked both write sequences with a userspace
 model of the counting and said exactly that below the `---` line. This was the only
-one of the four that went in as first sent. Jonathan's reply in full:
+one of the five that went in as first sent. Jonathan's reply in full:
 
 > Applied and marked for stable.
 >
@@ -328,9 +335,113 @@ one of the four that went in as first sent. Jonathan's reply in full:
 I hadn't added `Cc: stable` to this one. Jonathan decided it deserved a backport and
 added the tag himself.
 
+## iio core: a parser that didn't check for overflow
+
+Every IIO attribute that accepts a fractional value, such as `sampling_frequency`
+or `in_voltage_scale`, goes through `iio_str_to_fixpoint()`. It splits a string
+like `"12.345"` into an integer part and a fractional part, and many drivers also call
+it directly. The integer part was accumulated one digit at a time into an `int`:
+
+```c
+i = i * 10 + *str - '0';
+```
+
+Nothing checked whether `i` still fitted. Write `"99999999999999999999"` to
+one of these attributes and the multiplication overflows. Signed overflow in C is
+undefined behaviour, so the driver was handed whatever value the compiler's
+arithmetic happened to produce. As Jonathan pointed out later, nothing crashes. The
+bug is that a value nobody wrote reaches the hardware instead of an error.
+
+My v1 took the obvious route: accumulate into an `s64`, compare against a limit
+after each digit, and cast back to `int` at the end. Because the sign was applied
+only after the whole string had been parsed, the limit had to depend on the sign:
+
+```c
+limit = negative ? (s64)INT_MAX + 1 : INT_MAX;
+```
+
+Andy's review went through it line by line:
+
+> Wow, what's wrong with INT_MIN?
+
+> Why do you need explicit castings?
+
+> Do you know about APIs in overflow.h? I think you wanted to use something
+> from there.
+
+He also asked for a `Fixes:` tag, noting that without one the patch might not be
+needed at all, since Rodrigo Alencar was reworking this parser to support E notation.
+The `(s64)INT_MAX + 1` was the giveaway. I had worked around the sign handling when I
+should have changed it. `<linux/overflow.h>` has `check_mul_overflow()` and
+`check_add_overflow()`, which do the arithmetic and report whether it overflowed. If
+the sign is applied to each digit as it is added, the integer part never needs to be
+bigger than an `int`, and `INT_MIN` parses with no special case:
+
+```diff
+ 			if (integer_part) {
+-				i = i * 10 + *str - '0';
++				int digit = *str - '0';
++
++				/* Accumulate with the sign applied so INT_MIN fits */
++				if (check_mul_overflow(i, 10, &i) ||
++				    check_add_overflow(i, negative ? -digit : digit, &i))
++					return -ERANGE;
+ 			} else {
+```
+
+The `s64`, the limit, the casts and the declaration reordering Andy asked for all
+disappeared. The v2 changed 16 lines where v1 changed 23. The sign fix-up at the end
+shrank too. Only a value like `"-0.5"`, whose integer part is zero, still needs the
+sign moved onto the fractional part.
+
+Andy had also suggested borrowing Rodrigo's test cases. I replied that those tests
+target the new `kstrtodec64()` rather than the current parser, and offered to write
+KUnit tests for `iio_str_to_fixpoint()` separately. Rodrigo explained that this wasn't
+worth doing:
+
+> The current parser is being dropped in the E notation series, so that
+> overflow concerns are handled differently. [...] With that, not sure you need a
+> KUnit test for the current parser. Only small fix meant for backporting would
+> make sense to me.
+
+So v2 stayed small. Instead of KUnit tests, I tested the function in userspace,
+built with `-fsanitize=undefined`, on the inputs at the edges: `"2147483647"`,
+`"2147483648"`, `"-2147483648"`, `"-2147483649"`, `"99999999999999999999"`,
+`"-0.5"` and `"12.345\n"`. Every input that fits in an `int` parses exactly as
+before, and the ones that don't now return `-ERANGE`. Nuno Sá reviewed v2 the next
+morning:
+
+> LGTM (maybe a Cc to stable next time but Jonathan typically takes care
+> of that),
+>
+> Reviewed-by: Nuno Sá \<nuno.sa@analog.com\>
+
+Then nothing happened for ten days, which is normal before a merge window. When
+Jonathan did reply, it was the most interesting reply of the five, because he
+explained his decision in the open:
+
+> In in two minds about this. It is preventing unintuitive behaviour but
+> we shouldn't have any cases that crash or anything like that.
+>
+> Given the code in question is likely to be replaced shortly anyway
+> by Rodrigo's rework applying this for backporting purposes makes me nervous
+> even though it looks fine. I also don't want to delay Rodrigo's work
+> by having this go in via a different branch.
+>
+> So perhaps the worst possible compromise. Applied to the testing branch
+> of iio.git (which I'll rebase on rc1 shortly) and marked for stable.
+>
+> Rodrigo, you are going to need to rebase your series on top of this.
+
+Getting the code right was only part of it. Jonathan also had to weigh the risk of a
+backport against a bug that doesn't crash anything, and to fit the patch around
+someone else's larger series. His answer was to take it through the development branch
+rather than `fixes-togreg`, so Rodrigo could rebase on top of it, while still marking it
+for stable. I didn't know about any of these trade-offs when I sent v1.
+
 ## What these reviews taught me
 
-Looking back over the four threads, very few of the review comments were about
+Looking back over the five threads, very few of the review comments were about
 whether the code worked. They were about whether the *next* person could read it:
 
 | Patch | Review comment | What I changed |
@@ -343,8 +454,12 @@ whether the code worked. They were about whether the *next* person could read it
 | sx9360 | `_uHz`, use `units.h` | `freq_uHz`, `MICROHZ_PER_HZ` |
 | sx9360 | `guard()()` must stand alone | Added a blank line |
 | sx9360 | Table should be a plain int array | Deferred to a later cleanup, with agreement |
+| iio core | "What's wrong with INT_MIN?" | Applied the sign per digit, so INT_MIN needs no special case |
+| iio core | Use `overflow.h`, drop the casts | `check_mul_overflow()` / `check_add_overflow()` on plain `int`s |
+| iio core | Add a `Fixes:` tag | Added |
+| iio core | Add tests? | Left out after Rodrigo explained the parser is being replaced |
 
-: The review comments on the four patches, and how each was addressed. {#tbl-review}
+: The review comments on the five patches, and how each was addressed. {#tbl-review}
 
 A few habits came out of this week:
 
@@ -356,7 +471,10 @@ A few habits came out of this week:
 - **The changelog is part of the patch.** Each v2 listed every comment and who made
   it, and said what I hadn't done and why. That is what let Jonathan apply the sx9360
   fix fifteen minutes after it arrived.
-- **Say what you tested.** All four patches say "Compile-tested only" under the `---`
+- **Look for a helper before writing one.** My v1 overflow checks were correct,
+  but `overflow.h` already had them. Using the helper made v2 shorter and easier to
+  review.
+- **Say what you tested.** All five patches say "Compile-tested only" under the `---`
   line, along with whatever checking I could do without the hardware. Maintainers
   can only judge the risk of a patch if you're honest about this.
 
@@ -368,11 +486,12 @@ A few habits came out of this week:
 | mcp3564: reject devices without match data | iio fixes | Andy Shevchenko | [v1](https://lore.kernel.org/all/20261021225431.627718-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261023185837.195943-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=bee7b8b5c5d0) |
 | sx9360: fix sampling frequency write and available range | iio fixes, stable | Andy Shevchenko (v1) | [v1](https://lore.kernel.org/all/20261024180149.144609-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261025221241.19596-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=065605c6a43b) |
 | sx9500: ignore event config writes that don't change state | iio fixes, stable | — | [patch](https://lore.kernel.org/all/20261024175658.130546-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=09f742b49cb2) |
+| core: fix signed integer overflow in `iio_str_to_fixpoint()` | iio testing, stable | Nuno Sá | [v1](https://lore.kernel.org/all/20261021225306.623361-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261022140353.24213-1-kapoorarnav43@gmail.com/) |
 
-: The four patches applied this week. Jonathan plans to rebase `fixes-togreg` on
-rc1, so the commit IDs may change. {#tbl-results}
+: The five patches. Jonathan plans to rebase `fixes-togreg` and `testing` on rc1,
+so the commit IDs may change; the core fix isn't public yet, so it has no commit link. {#tbl-results}
 
-That brings my total to thirteen applied patches. I have a few more SX9xxx patches
+That brings my total to fourteen applied patches. I have a few more SX9xxx patches
 on the list as I write this, a series that keeps the IRQ balanced across suspend
 and resume, and a hysteresis fix for the `sx9310`, so this family of drivers
 may get one more post.
@@ -380,5 +499,5 @@ may get one more post.
 ## Acknowledgements
 
 Thank you to Andy Shevchenko, whose reviews are short, exact and always worth
-reading twice, and to Jonathan Cameron for his patience, his speed, and for fixing
-my hyphens. Thanks also to Shuah Khan for the mentorship that got me here.
+reading twice, to Nuno Sá and Rodrigo Alencar for their reviews of the parser fix, and to
+Jonathan Cameron for his patience, his speed, and for fixing my hyphens. Thanks also to Shuah Khan for the mentorship that got me here.
