@@ -35,13 +35,6 @@ documented their mathematical formulations and the contributing guidelines, and 
 dimension-modification warnings, type corrections and tests. Contributed pull requests
 across the JSO ecosystem.
 
-## Teaching Assistant, Data Structures and Algorithms
-
-**IISER Bhopal**
-
-DSE255/ECS202/ECS225 under Dr. Pawan Kumar Aurora (Department of Electrical
-Engineering and Computer Science).
-
 ## Research Contributor, Q-MAML for HEP at the LHC
 
 **Machine Learning for Science (ML4SCI)**
