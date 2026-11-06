@@ -322,5 +322,5 @@ work: Jonathan Cameron, Andy Shevchenko, Jean-Baptiste Maneyrol, Joshua Crofts, 
 Maxwell Doose, Tzung-Bi Shih, Simon Horman, Alex Austin, Paolo Abeni and Geert
 Uytterhoeven. Each of these patches is better because of them.
 
-*Cover photo: [GY-521 MPU-6050 module](https://commons.wikimedia.org/wiki/File:GY-521_MPU-6050_Module_3_Axis_Gyroscope_%2B_Accelerometer_0487.jpg)
-by Nevit Dilmen, [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/), cropped.*
+*Cover photo: [Programming](https://commons.wikimedia.org/wiki/File:Programming.jpg)
+by Lorenzo Cafaro, public domain (CC0).*

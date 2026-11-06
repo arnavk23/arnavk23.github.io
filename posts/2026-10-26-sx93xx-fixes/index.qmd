@@ -504,5 +504,5 @@ Thank you to Andy Shevchenko, whose reviews are short, exact and always worth
 reading twice, to Nuno Sá and Rodrigo Alencar for their reviews of the parser fix, and to
 Jonathan Cameron for his patience, his speed, and for fixing my hyphens. Thanks also to Shuah Khan for the mentorship that got me here.
 
-*Cover photo: [Labyrinthine circuit board lines](https://commons.wikimedia.org/wiki/File:Labyrinthine_circuit_board_lines_-_Flickr_-_quapan.jpg)
-by quapan, [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/), cropped.*
+*Cover photo: [Colorful code](https://commons.wikimedia.org/wiki/File:Colorful_code_(Unsplash).jpg)
+by Markus Spiske, public domain (CC0).*
