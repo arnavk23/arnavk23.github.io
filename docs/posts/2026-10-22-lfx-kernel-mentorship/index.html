@@ -8,9 +8,9 @@
 
 <meta name="author" content="Arnav Kapoor">
 <meta name="dcterms.date" content="2026-10-22">
-<meta name="description" content="A technical account of my LFX Linux Kernel Bug Fixing Mentorship: how bugs in the IIO and networking subsystems were found, how review on the mailing list shaped each fix, and what working with kernel maintainers taught me.">
+<meta name="description" content="How I got my first nine patches into the Linux kernel during the LFX Linux Kernel Bug Fixing Mentorship: how bugs in the IIO and networking subsystems were found, how review on the mailing list shaped each fix, and what working with kernel maintainers taught me.">
 
-<title>Learnings from LKMP: How to contribute to the Linux Kernel – arnavk23</title>
+<title>First Steps: Getting My First Patches into the Linux Kernel – arnavk23</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -382,7 +382,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Learnings from LKMP: How to contribute to the Linux Kernel</h1>
+<h1 class="title">First Steps: Getting My First Patches into the Linux Kernel</h1>
   <div class="quarto-categories">
     <div class="quarto-category">linux-kernel</div>
     <div class="quarto-category">lfx</div>
@@ -393,7 +393,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <div>
   <div class="description">
-    A technical account of my LFX Linux Kernel Bug Fixing Mentorship: how bugs in the IIO and networking subsystems were found, how review on the mailing list shaped each fix, and what working with kernel maintainers taught me.
+    How I got my first nine patches into the Linux kernel during the LFX Linux Kernel Bug Fixing Mentorship: how bugs in the IIO and networking subsystems were found, how review on the mailing list shaped each fix, and what working with kernel maintainers taught me.
   </div>
 </div>
 
@@ -423,6 +423,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <p>Kernel developers have a reputation for being hard on newcomers. My experience was the opposite. Over the <a href="https://wiki.linuxfoundation.org/lkmp">LFX Linux Kernel Bug Fixing Mentorship</a> with Shuah Khan, nine of my patches were applied upstream: eight in the Industrial I/O (IIO) subsystem and one in the <code>sfc</code> network driver. None of them reached that state as I first wrote them. Each was improved by someone on the mailing list: a maintainer, a reviewer, or an automated test robot. This post is an account of that collaboration as much as of the bugs themselves.</p>
+<p><em>This is the first of two posts. The <a href="../../posts/2026-10-26-sx93xx-fixes/index.html">follow-up</a> is my main write-up of the mentorship, and covers the next five patches and my first NAK.</em></p>
 <section id="background-how-a-patch-travels" class="level2">
 <h2 class="anchored" data-anchor-id="background-how-a-patch-travels">Background: how a patch travels</h2>
 <p>The Linux kernel has no pull requests. A change is a plain-text email, sent with <code>git send-email</code> to the maintainers and lists that <code>scripts/get_maintainer.pl</code> names for the files it touches. Reviewers reply inline, and they show approval with tags such as <code>Reviewed-by:</code> and <code>Acked-by:</code>. A subsystem maintainer then applies the patch to their own tree. From there it flows into <a href="https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git/">linux-next</a>, then into Linus Torvalds’ mainline tree during a merge window, and, if it is marked for stable, into the <a href="https://www.kernel.org/category/releases.html">stable kernels</a> people already run.</p>

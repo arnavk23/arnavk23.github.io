@@ -1,6 +1,6 @@
 ---
-title: "A NAK, Some Homework, and Five More Fixes"
-description: "Five more of my IIO patches were applied in the last two weeks: three in the Semtech SX9xxx proximity drivers, one in the MCP3564 ADC and one in the IIO core. This post covers the bugs, the review that shaped each fix, and what I learned from my first NAK."
+title: "My LFX Linux Kernel Mentorship: A NAK, Some Homework, and Fourteen Patches"
+description: "An account of my LFX Linux Kernel Bug Fixing Mentorship, through the five IIO fixes that brought my total to fourteen applied patches: three in the Semtech SX9xxx proximity drivers, one in the MCP3564 ADC and one in the IIO core. It covers the bugs, the review that shaped each fix, and what I learned from my first NAK."
 date: 2026-10-26
 draft: false
 categories: [linux-kernel, lfx, iio, open-source]
@@ -9,10 +9,12 @@ toc: true
 toc-location: right
 ---
 
-A few days ago I [wrote](../2026-10-22-lfx-kernel-mentorship/index.qmd) that kernel
-maintainers were much kinder than their reputation. This week a review of mine
-included the word "NAK", followed by a homework assignment. I still stand by
-what I wrote.
+This is my write-up of the [LFX Linux Kernel Bug Fixing Mentorship](https://wiki.linuxfoundation.org/lkmp)
+with Shuah Khan. My [first post](../2026-10-22-lfx-kernel-mentorship/index.qmd) covered
+how I got my first nine patches into the kernel, and said that kernel maintainers were
+much kinder than their reputation. This post covers the next five, which brought my
+total to fourteen. One review of them included the word "NAK", followed by a homework
+assignment. I still stand by what I wrote.
 
 Between 22 and 26 October, Jonathan Cameron applied four more of my patches to the
 `fixes-togreg` branch of [`iio.git`](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/).
@@ -486,7 +488,7 @@ A few habits came out of this week:
 | mcp3564: reject devices without match data | iio fixes | Andy Shevchenko | [v1](https://lore.kernel.org/all/20261021225431.627718-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261023185837.195943-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=bee7b8b5c5d0) |
 | sx9360: fix sampling frequency write and available range | iio fixes, stable | Andy Shevchenko (v1) | [v1](https://lore.kernel.org/all/20261024180149.144609-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261025221241.19596-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=065605c6a43b) |
 | sx9500: ignore event config writes that don't change state | iio fixes, stable | — | [patch](https://lore.kernel.org/all/20261024175658.130546-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=09f742b49cb2) |
-| core: fix signed integer overflow in `iio_str_to_fixpoint()` | iio testing, stable | Nuno Sá | [v1](https://lore.kernel.org/all/20261021225306.623361-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261022140353.24213-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=185d6cca04d2) |
+| core: fix signed integer overflow in `iio_str_to_fixpoint()` | iio testing, stable | Nuno Sá | [v1](https://lore.kernel.org/all/20261021225306.623361-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261022140353.24213-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&id=962311944f1b26578a8ff30357b95b815fb75494) |
 
 : The five patches. The `iio.git` branches are rebased from time to time, so the
 commit IDs may change. {#tbl-results}

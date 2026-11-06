@@ -1,6 +1,6 @@
 ---
-title: "Learnings from LKMP: How to contribute to the Linux Kernel"
-description: "A technical account of my LFX Linux Kernel Bug Fixing Mentorship: how bugs in the IIO and networking subsystems were found, how review on the mailing list shaped each fix, and what working with kernel maintainers taught me."
+title: "First Steps: Getting My First Patches into the Linux Kernel"
+description: "How I got my first nine patches into the Linux kernel during the LFX Linux Kernel Bug Fixing Mentorship: how bugs in the IIO and networking subsystems were found, how review on the mailing list shaped each fix, and what working with kernel maintainers taught me."
 date: 2026-10-22
 draft: false
 categories: [linux-kernel, lfx, iio, open-source]
@@ -16,6 +16,9 @@ with Shuah Khan, nine of my patches were applied upstream: eight in the Industri
 first wrote them. Each was improved by someone on the mailing list: a maintainer, a
 reviewer, or an automated test robot. This post is an account of that collaboration as
 much as of the bugs themselves.
+
+*This is the first of two posts. The [follow-up](../2026-10-26-sx93xx-fixes/index.qmd)
+is my main write-up of the mentorship, and covers the next five patches and my first NAK.*
 
 ## Background: how a patch travels
 

@@ -12,7 +12,7 @@
 <generator>quarto-1.10.19</generator>
 <lastBuildDate>Sun, 25 Oct 2026 18:30:00 GMT</lastBuildDate>
 <item>
-  <title>A NAK, Some Homework, and Five More Fixes</title>
+  <title>My LFX Linux Kernel Mentorship: A NAK, Some Homework, and Fourteen Patches</title>
   <dc:creator>Arnav Kapoor</dc:creator>
   <link>https://arnavk23.github.io/posts/2026-10-26-sx93xx-fixes/</link>
   <description><![CDATA[ 
@@ -21,7 +21,7 @@
 
 
 
-<p>A few days ago I <a href="../../posts/2026-10-22-lfx-kernel-mentorship/index.html">wrote</a> that kernel maintainers were much kinder than their reputation. This week a review of mine included the word “NAK”, followed by a homework assignment. I still stand by what I wrote.</p>
+<p>This is my write-up of the <a href="https://wiki.linuxfoundation.org/lkmp">LFX Linux Kernel Bug Fixing Mentorship</a> with Shuah Khan. My <a href="../../posts/2026-10-22-lfx-kernel-mentorship/index.html">first post</a> covered how I got my first nine patches into the kernel, and said that kernel maintainers were much kinder than their reputation. This post covers the next five, which brought my total to fourteen. One review of them included the word “NAK”, followed by a homework assignment. I still stand by what I wrote.</p>
 <p>Between 22 and 26 October, Jonathan Cameron applied four more of my patches to the <code>fixes-togreg</code> branch of <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/"><code>iio.git</code></a>. Three are in the Semtech SX9xxx capacitive proximity drivers (<code>sx9324</code>, <code>sx9360</code> and <code>sx9500</code>). The fourth is in the Microchip <code>mcp3564</code> ADC driver. A fifth patch, an overflow fix in the IIO core’s number parser, followed on 2 November and went to the <code>testing</code> branch. All five are bug fixes with a <code>Fixes:</code> tag, and four of them are marked for stable kernels. Andy Shevchenko reviewed four of the five, and each review changed the patch for the better.</p>
 <p><em>Updated 2 November 2026 with the <code>iio_str_to_fixpoint()</code> fix.</em></p>
 <div class="cell" data-layout-align="default">
@@ -801,7 +801,7 @@ Table&nbsp;2: The five patches. The <code>iio.git</code> branches are rebased fr
 <td>core: fix signed integer overflow in <code>iio_str_to_fixpoint()</code></td>
 <td>iio testing, stable</td>
 <td>Nuno Sá</td>
-<td><a href="https://lore.kernel.org/all/20261021225306.623361-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261022140353.24213-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=185d6cca04d2">commit</a></td>
+<td><a href="https://lore.kernel.org/all/20261021225306.623361-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261022140353.24213-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&amp;id=962311944f1b26578a8ff30357b95b815fb75494">commit</a></td>
 </tr>
 </tbody>
 </table>
@@ -827,7 +827,7 @@ Table&nbsp;2: The five patches. The <code>iio.git</code> branches are rebased fr
   <media:content url="https://arnavk23.github.io/posts/2026-10-26-sx93xx-fixes/sx9324_table.png" medium="image" type="image/png" height="49" width="144"/>
 </item>
 <item>
-  <title>Learnings from LKMP: How to contribute to the Linux Kernel</title>
+  <title>First Steps: Getting My First Patches into the Linux Kernel</title>
   <dc:creator>Arnav Kapoor</dc:creator>
   <link>https://arnavk23.github.io/posts/2026-10-22-lfx-kernel-mentorship/</link>
   <description><![CDATA[ 
@@ -837,6 +837,7 @@ Table&nbsp;2: The five patches. The <code>iio.git</code> branches are rebased fr
 
 
 <p>Kernel developers have a reputation for being hard on newcomers. My experience was the opposite. Over the <a href="https://wiki.linuxfoundation.org/lkmp">LFX Linux Kernel Bug Fixing Mentorship</a> with Shuah Khan, nine of my patches were applied upstream: eight in the Industrial I/O (IIO) subsystem and one in the <code>sfc</code> network driver. None of them reached that state as I first wrote them. Each was improved by someone on the mailing list: a maintainer, a reviewer, or an automated test robot. This post is an account of that collaboration as much as of the bugs themselves.</p>
+<p><em>This is the first of two posts. The <a href="../../posts/2026-10-26-sx93xx-fixes/index.html">follow-up</a> is my main write-up of the mentorship, and covers the next five patches and my first NAK.</em></p>
 <section id="background-how-a-patch-travels" class="level2">
 <h2 class="anchored" data-anchor-id="background-how-a-patch-travels">Background: how a patch travels</h2>
 <p>The Linux kernel has no pull requests. A change is a plain-text email, sent with <code>git send-email</code> to the maintainers and lists that <code>scripts/get_maintainer.pl</code> names for the files it touches. Reviewers reply inline, and they show approval with tags such as <code>Reviewed-by:</code> and <code>Acked-by:</code>. A subsystem maintainer then applies the patch to their own tree. From there it flows into <a href="https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git/">linux-next</a>, then into Linus Torvalds’ mainline tree during a merge window, and, if it is marked for stable, into the <a href="https://www.kernel.org/category/releases.html">stable kernels</a> people already run.</p>

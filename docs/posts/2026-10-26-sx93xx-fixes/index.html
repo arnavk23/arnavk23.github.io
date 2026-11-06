@@ -8,9 +8,9 @@
 
 <meta name="author" content="Arnav Kapoor">
 <meta name="dcterms.date" content="2026-10-26">
-<meta name="description" content="Five more of my IIO patches were applied in the last two weeks: three in the Semtech SX9xxx proximity drivers, one in the MCP3564 ADC and one in the IIO core. This post covers the bugs, the review that shaped each fix, and what I learned from my first NAK.">
+<meta name="description" content="An account of my LFX Linux Kernel Bug Fixing Mentorship, through the five IIO fixes that brought my total to fourteen applied patches: three in the Semtech SX9xxx proximity drivers, one in the MCP3564 ADC and one in the IIO core. It covers the bugs, the review that shaped each fix, and what I learned from my first NAK.">
 
-<title>A NAK, Some Homework, and Five More Fixes – arnavk23</title>
+<title>My LFX Linux Kernel Mentorship: A NAK, Some Homework, and Fourteen Patches – arnavk23</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -404,7 +404,7 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">A NAK, Some Homework, and Five More Fixes</h1>
+<h1 class="title">My LFX Linux Kernel Mentorship: A NAK, Some Homework, and Fourteen Patches</h1>
   <div class="quarto-categories">
     <div class="quarto-category">linux-kernel</div>
     <div class="quarto-category">lfx</div>
@@ -415,7 +415,7 @@ window.Quarto = {
 
 <div>
   <div class="description">
-    Five more of my IIO patches were applied in the last two weeks: three in the Semtech SX9xxx proximity drivers, one in the MCP3564 ADC and one in the IIO core. This post covers the bugs, the review that shaped each fix, and what I learned from my first NAK.
+    An account of my LFX Linux Kernel Bug Fixing Mentorship, through the five IIO fixes that brought my total to fourteen applied patches: three in the Semtech SX9xxx proximity drivers, one in the MCP3564 ADC and one in the IIO core. It covers the bugs, the review that shaped each fix, and what I learned from my first NAK.
   </div>
 </div>
 
@@ -444,7 +444,7 @@ window.Quarto = {
 </header>
 
 
-<p>A few days ago I <a href="../../posts/2026-10-22-lfx-kernel-mentorship/index.html">wrote</a> that kernel maintainers were much kinder than their reputation. This week a review of mine included the word “NAK”, followed by a homework assignment. I still stand by what I wrote.</p>
+<p>This is my write-up of the <a href="https://wiki.linuxfoundation.org/lkmp">LFX Linux Kernel Bug Fixing Mentorship</a> with Shuah Khan. My <a href="../../posts/2026-10-22-lfx-kernel-mentorship/index.html">first post</a> covered how I got my first nine patches into the kernel, and said that kernel maintainers were much kinder than their reputation. This post covers the next five, which brought my total to fourteen. One review of them included the word “NAK”, followed by a homework assignment. I still stand by what I wrote.</p>
 <p>Between 22 and 26 October, Jonathan Cameron applied four more of my patches to the <code>fixes-togreg</code> branch of <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/"><code>iio.git</code></a>. Three are in the Semtech SX9xxx capacitive proximity drivers (<code>sx9324</code>, <code>sx9360</code> and <code>sx9500</code>). The fourth is in the Microchip <code>mcp3564</code> ADC driver. A fifth patch, an overflow fix in the IIO core’s number parser, followed on 2 November and went to the <code>testing</code> branch. All five are bug fixes with a <code>Fixes:</code> tag, and four of them are marked for stable kernels. Andy Shevchenko reviewed four of the five, and each review changed the patch for the better.</p>
 <p><em>Updated 2 November 2026 with the <code>iio_str_to_fixpoint()</code> fix.</em></p>
 <div class="cell" data-layout-align="default">
@@ -864,7 +864,7 @@ Table&nbsp;2: The five patches. The <code>iio.git</code> branches are rebased fr
 <td>core: fix signed integer overflow in <code>iio_str_to_fixpoint()</code></td>
 <td>iio testing, stable</td>
 <td>Nuno Sá</td>
-<td><a href="https://lore.kernel.org/all/20261021225306.623361-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261022140353.24213-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=185d6cca04d2">commit</a></td>
+<td><a href="https://lore.kernel.org/all/20261021225306.623361-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261022140353.24213-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&amp;id=962311944f1b26578a8ff30357b95b815fb75494">commit</a></td>
 </tr>
 </tbody>
 </table>
