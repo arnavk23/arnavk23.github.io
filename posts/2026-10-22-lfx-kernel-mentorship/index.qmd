@@ -4,7 +4,7 @@ description: "How I got my first nine patches into the Linux kernel during the L
 date: 2026-10-22
 draft: false
 categories: [linux-kernel, lfx, iio, open-source]
-image: cover.jpg
+image: cover.png
 toc: true
 toc-location: right
 ---
@@ -321,6 +321,3 @@ I am grateful to Shuah Khan for running the mentorship, and to everyone who revi
 work: Jonathan Cameron, Andy Shevchenko, Jean-Baptiste Maneyrol, Joshua Crofts, Nuno Sá,
 Maxwell Doose, Tzung-Bi Shih, Simon Horman, Alex Austin, Paolo Abeni and Geert
 Uytterhoeven. Each of these patches is better because of them.
-
-*Cover photo: [Programming](https://commons.wikimedia.org/wiki/File:Programming.jpg)
-by Lorenzo Cafaro, public domain (CC0).*

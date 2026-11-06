@@ -813,7 +813,6 @@ Table&nbsp;2: The five patches. The <code>iio.git</code> branches are rebased fr
 <section id="acknowledgements" class="level2">
 <h2 class="anchored" data-anchor-id="acknowledgements">Acknowledgements</h2>
 <p>Thank you to Andy Shevchenko, whose reviews are short, exact and always worth reading twice, to Nuno Sá and Rodrigo Alencar for their reviews of the parser fix, and to Jonathan Cameron for his patience, his speed, and for fixing my hyphens. Thanks also to Shuah Khan for the mentorship that got me here.</p>
-<p><em>Cover photo: <a href="https://commons.wikimedia.org/wiki/File:Colorful_code_(Unsplash).jpg">Colorful code</a> by Markus Spiske, public domain (CC0).</em></p>
 
 
 </section>
@@ -825,7 +824,7 @@ Table&nbsp;2: The five patches. The <code>iio.git</code> branches are rebased fr
   <category>open-source</category>
   <guid>https://arnavk23.github.io/posts/2026-10-26-sx93xx-fixes/</guid>
   <pubDate>Sun, 25 Oct 2026 18:30:00 GMT</pubDate>
-  <media:content url="https://arnavk23.github.io/posts/2026-10-26-sx93xx-fixes/cover.jpg" medium="image" type="image/jpeg"/>
+  <media:content url="https://arnavk23.github.io/posts/2026-10-26-sx93xx-fixes/cover.png" medium="image" type="image/png" height="96" width="144"/>
 </item>
 <item>
   <title>First Steps: Getting My First Patches into the Linux Kernel</title>
@@ -1244,7 +1243,6 @@ Table&nbsp;2: All nine applied patches.
 <section id="acknowledgements" class="level2">
 <h2 class="anchored" data-anchor-id="acknowledgements">Acknowledgements</h2>
 <p>I am grateful to Shuah Khan for running the mentorship, and to everyone who reviewed my work: Jonathan Cameron, Andy Shevchenko, Jean-Baptiste Maneyrol, Joshua Crofts, Nuno Sá, Maxwell Doose, Tzung-Bi Shih, Simon Horman, Alex Austin, Paolo Abeni and Geert Uytterhoeven. Each of these patches is better because of them.</p>
-<p><em>Cover photo: <a href="https://commons.wikimedia.org/wiki/File:Programming.jpg">Programming</a> by Lorenzo Cafaro, public domain (CC0).</em></p>
 
 
 </section>
@@ -1256,7 +1254,7 @@ Table&nbsp;2: All nine applied patches.
   <category>open-source</category>
   <guid>https://arnavk23.github.io/posts/2026-10-22-lfx-kernel-mentorship/</guid>
   <pubDate>Wed, 21 Oct 2026 18:30:00 GMT</pubDate>
-  <media:content url="https://arnavk23.github.io/posts/2026-10-22-lfx-kernel-mentorship/cover.jpg" medium="image" type="image/jpeg"/>
+  <media:content url="https://arnavk23.github.io/posts/2026-10-22-lfx-kernel-mentorship/cover.png" medium="image" type="image/png" height="96" width="144"/>
 </item>
 </channel>
 </rss>
