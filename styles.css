@@ -103,3 +103,40 @@
     flex: 0 0 25% !important;
   }
 }
+
+/* Blog listing: image sits under the date, so the text gets the full width beside them */
+@media (min-width: 768px) {
+  #listing-listing .quarto-post {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      "meta  body"
+      "thumb body";
+    column-gap: 2em;
+    row-gap: 0.25em;
+  }
+  #listing-listing .quarto-post .metadata {
+    grid-area: meta;
+    padding-bottom: 0.5em;
+  }
+  #listing-listing .quarto-post .thumbnail {
+    grid-area: thumb;
+  }
+  #listing-listing .quarto-post .body {
+    grid-area: body;
+  }
+}
+#listing-listing .quarto-post .thumbnail img {
+  aspect-ratio: 3 / 2;
+  border-radius: 8px;
+}
+
+/* Compact categories column */
+.quarto-listing-category-title {
+  font-size: 0.95rem;
+}
+.quarto-listing-category .category {
+  font-size: 0.85rem;
+  line-height: 1.5;
+}

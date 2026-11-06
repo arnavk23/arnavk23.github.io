@@ -4,7 +4,7 @@ description: "How I got my first nine patches into the Linux kernel during the L
 date: 2026-10-22
 draft: false
 categories: [linux-kernel, lfx, iio, open-source]
-image: do_div.png
+image: cover.png
 toc: true
 toc-location: right
 ---

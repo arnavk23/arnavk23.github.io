@@ -4,7 +4,7 @@ description: "An account of my LFX Linux Kernel Bug Fixing Mentorship, through t
 date: 2026-10-26
 draft: false
 categories: [linux-kernel, lfx, iio, open-source]
-image: sx9324_table.png
+image: cover.png
 toc: true
 toc-location: right
 ---

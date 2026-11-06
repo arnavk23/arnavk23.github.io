@@ -824,7 +824,7 @@ Table&nbsp;2: The five patches. The <code>iio.git</code> branches are rebased fr
   <category>open-source</category>
   <guid>https://arnavk23.github.io/posts/2026-10-26-sx93xx-fixes/</guid>
   <pubDate>Sun, 25 Oct 2026 18:30:00 GMT</pubDate>
-  <media:content url="https://arnavk23.github.io/posts/2026-10-26-sx93xx-fixes/sx9324_table.png" medium="image" type="image/png" height="49" width="144"/>
+  <media:content url="https://arnavk23.github.io/posts/2026-10-26-sx93xx-fixes/cover.png" medium="image" type="image/png" height="96" width="144"/>
 </item>
 <item>
   <title>First Steps: Getting My First Patches into the Linux Kernel</title>
@@ -1254,7 +1254,7 @@ Table&nbsp;2: All nine applied patches.
   <category>open-source</category>
   <guid>https://arnavk23.github.io/posts/2026-10-22-lfx-kernel-mentorship/</guid>
   <pubDate>Wed, 21 Oct 2026 18:30:00 GMT</pubDate>
-  <media:content url="https://arnavk23.github.io/posts/2026-10-22-lfx-kernel-mentorship/do_div.png" medium="image" type="image/png" height="76" width="144"/>
+  <media:content url="https://arnavk23.github.io/posts/2026-10-22-lfx-kernel-mentorship/cover.png" medium="image" type="image/png" height="96" width="144"/>
 </item>
 </channel>
 </rss>
