@@ -4,7 +4,7 @@ description: "How I got my first nine patches into the Linux kernel during the L
 date: 2026-10-22
 draft: false
 categories: [linux-kernel, lfx, iio, open-source]
-image: cover.png
+image: cover.jpg
 toc: true
 toc-location: right
 ---
@@ -321,3 +321,6 @@ I am grateful to Shuah Khan for running the mentorship, and to everyone who revi
 work: Jonathan Cameron, Andy Shevchenko, Jean-Baptiste Maneyrol, Joshua Crofts, Nuno Sá,
 Maxwell Doose, Tzung-Bi Shih, Simon Horman, Alex Austin, Paolo Abeni and Geert
 Uytterhoeven. Each of these patches is better because of them.
+
+*Cover photo: [GY-521 MPU-6050 module](https://commons.wikimedia.org/wiki/File:GY-521_MPU-6050_Module_3_Axis_Gyroscope_%2B_Accelerometer_0487.jpg)
+by Nevit Dilmen, [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/), cropped.*
