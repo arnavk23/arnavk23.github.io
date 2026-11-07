@@ -7,10 +7,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Arnav Kapoor">
-<meta name="dcterms.date" content="2026-10-26">
-<meta name="description" content="An account of my LFX Linux Kernel Bug Fixing Mentorship, through the five IIO fixes that brought my total to fourteen applied patches: three in the Semtech SX9xxx proximity drivers, one in the MCP3564 ADC and one in the IIO core. It covers the bugs, the review that shaped each fix, and what I learned from my first NAK.">
+<meta name="dcterms.date" content="2026-11-08">
+<meta name="description" content="An account of my LFX Linux Kernel Bug Fixing Mentorship, through the six IIO fixes that brought my total to fifteen applied patches: four in the Semtech SX9xxx proximity drivers, one in the MCP3564 ADC and one in the IIO core. It covers the bugs, the review that shaped each fix, and what I learned from my first NAK.">
 
-<title>My LFX Linux Kernel Mentorship: A NAK, Some Homework, and Fourteen Patches – arnavk23</title>
+<title>My LFX Linux Kernel Mentorship: A NAK, Some Homework, and Fifteen Patches – arnavk23</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -392,6 +392,7 @@ window.Quarto = {
   <li><a href="#sx9360-a-frequency-that-always-became-zero" id="toc-sx9360-a-frequency-that-always-became-zero" class="nav-link" data-scroll-target="#sx9360-a-frequency-that-always-became-zero">sx9360: a frequency that always became zero</a></li>
   <li><a href="#sx9500-reference-counts-that-drift" id="toc-sx9500-reference-counts-that-drift" class="nav-link" data-scroll-target="#sx9500-reference-counts-that-drift">sx9500: reference counts that drift</a></li>
   <li><a href="#iio-core-a-parser-that-didnt-check-for-overflow" id="toc-iio-core-a-parser-that-didnt-check-for-overflow" class="nav-link" data-scroll-target="#iio-core-a-parser-that-didnt-check-for-overflow">iio core: a parser that didn’t check for overflow</a></li>
+  <li><a href="#sx9310-no-hysteresis-reported-as-the-whole-threshold" id="toc-sx9310-no-hysteresis-reported-as-the-whole-threshold" class="nav-link" data-scroll-target="#sx9310-no-hysteresis-reported-as-the-whole-threshold">sx9310: no hysteresis, reported as the whole threshold</a></li>
   <li><a href="#what-these-reviews-taught-me" id="toc-what-these-reviews-taught-me" class="nav-link" data-scroll-target="#what-these-reviews-taught-me">What these reviews taught me</a></li>
   <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">Results</a></li>
   <li><a href="#acknowledgements" id="toc-acknowledgements" class="nav-link" data-scroll-target="#acknowledgements">Acknowledgements</a></li>
@@ -404,7 +405,7 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">My LFX Linux Kernel Mentorship: A NAK, Some Homework, and Fourteen Patches</h1>
+<h1 class="title">My LFX Linux Kernel Mentorship: A NAK, Some Homework, and Fifteen Patches</h1>
   <div class="quarto-categories">
     <div class="quarto-category">linux-kernel</div>
     <div class="quarto-category">lfx</div>
@@ -415,7 +416,7 @@ window.Quarto = {
 
 <div>
   <div class="description">
-    An account of my LFX Linux Kernel Bug Fixing Mentorship, through the five IIO fixes that brought my total to fourteen applied patches: three in the Semtech SX9xxx proximity drivers, one in the MCP3564 ADC and one in the IIO core. It covers the bugs, the review that shaped each fix, and what I learned from my first NAK.
+    An account of my LFX Linux Kernel Bug Fixing Mentorship, through the six IIO fixes that brought my total to fifteen applied patches: four in the Semtech SX9xxx proximity drivers, one in the MCP3564 ADC and one in the IIO core. It covers the bugs, the review that shaped each fix, and what I learned from my first NAK.
   </div>
 </div>
 
@@ -432,7 +433,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">October 26, 2026</p>
+      <p class="date">November 8, 2026</p>
     </div>
   </div>
   
@@ -444,9 +445,9 @@ window.Quarto = {
 </header>
 
 
-<p>This is my write-up of the <a href="https://wiki.linuxfoundation.org/lkmp">LFX Linux Kernel Bug Fixing Mentorship</a> with Shuah Khan. My <a href="../../posts/2026-10-22-lfx-kernel-mentorship/index.html">first post</a> covered how I got my first nine patches into the kernel, and said that kernel maintainers were much kinder than their reputation. This post covers the next five, which brought my total to fourteen. One review of them included the word “NAK”, followed by a homework assignment. I still stand by what I wrote.</p>
-<p>Between 22 and 26 October, Jonathan Cameron applied four more of my patches to the <code>fixes-togreg</code> branch of <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/"><code>iio.git</code></a>. Three are in the Semtech SX9xxx capacitive proximity drivers (<code>sx9324</code>, <code>sx9360</code> and <code>sx9500</code>). The fourth is in the Microchip <code>mcp3564</code> ADC driver. A fifth patch, an overflow fix in the IIO core’s number parser, followed on 2 November and went to the <code>testing</code> branch. All five are bug fixes with a <code>Fixes:</code> tag, and four of them are marked for stable kernels. Andy Shevchenko reviewed four of the five, and each review changed the patch for the better.</p>
-<p><em>Updated 2 November 2026 with the <code>iio_str_to_fixpoint()</code> fix.</em></p>
+<p>This is my write-up of the <a href="https://wiki.linuxfoundation.org/lkmp">LFX Linux Kernel Bug Fixing Mentorship</a> with Shuah Khan. My <a href="../../posts/2026-10-22-lfx-kernel-mentorship/index.html">first post</a> covered how I got my first nine patches into the kernel, and said that kernel maintainers were much kinder than their reputation. This post covers the next six, which brought my total to fifteen. One review of them included the word “NAK”, followed by a homework assignment. I still stand by what I wrote.</p>
+<p>Between 22 and 26 October, Jonathan Cameron applied four more of my patches to the <code>fixes-togreg</code> branch of <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/"><code>iio.git</code></a>. Three are in the Semtech SX9xxx capacitive proximity drivers (<code>sx9324</code>, <code>sx9360</code> and <code>sx9500</code>). The fourth is in the Microchip <code>mcp3564</code> ADC driver. Two more, an overflow fix in the IIO core’s number parser and a hysteresis fix in the <code>sx9310</code>, followed on 2 November and went to the <code>testing</code> branch. All six are bug fixes with a <code>Fixes:</code> tag, and five of them are marked for stable kernels. Andy Shevchenko reviewed five of the six, and each review changed the patch for the better.</p>
+<p><em>First published on 26 October 2026, and updated on 2 November with the <code>iio_str_to_fixpoint()</code> fix and on 8 November with the <code>sx9310</code> fix.</em></p>
 <div class="cell" data-layout-align="default">
 <div class="cell-output-display">
 <div id="fig-timeline" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -476,11 +477,15 @@ window.Quarto = {
     v1 in review                  :done, 2026-10-22 04:22, 2026-10-22 19:33
     v2 (Reviewed-by, then waiting) :active, 2026-10-22 19:33, 2026-11-02 05:10
     applied                       :milestone, 2026-11-02 05:10, 0d
+    section sx9310
+    v1 in review                  :done, 2026-10-26 15:30, 2026-10-26 16:50
+    v2                            :active, 2026-10-26 16:50, 2026-11-02 06:17
+    applied                       :milestone, 2026-11-02 06:17, 0d
 </pre>
 </div>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-timeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: The five patches, from first submission to application (times in IST). Three of them needed a v2 after review; the sx9500 fix was applied as sent.
+Figure&nbsp;1: The six patches, from first submission to application (times in IST). Four of them needed a v2 after review; the sx9500 fix was applied as sent.
 </figcaption>
 </figure>
 </div>
@@ -667,7 +672,7 @@ Figure&nbsp;5: <code>channel_users[]</code> for two write sequences. Before the 
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="va">+   }</span></span>
 <span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="va">+</span></span>
 <span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    if (state) {</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>I don’t have SX9500 hardware, so I checked both write sequences with a userspace model of the counting and said exactly that below the <code>---</code> line. This was the only one of the five that went in as first sent. Jonathan’s reply in full:</p>
+<p>I don’t have SX9500 hardware, so I checked both write sequences with a userspace model of the counting and said exactly that below the <code>---</code> line. This was the only one of the six that went in as first sent. Jonathan’s reply in full:</p>
 <blockquote class="blockquote">
 <p>Applied and marked for stable.</p>
 <p>thanks</p>
@@ -712,7 +717,7 @@ Figure&nbsp;5: <code>channel_users[]</code> for two write sequences. Before the 
 <p>LGTM (maybe a Cc to stable next time but Jonathan typically takes care of that),</p>
 <p>Reviewed-by: Nuno Sá &lt;nuno.sa@analog.com&gt;</p>
 </blockquote>
-<p>Then nothing happened for ten days, which is normal before a merge window. When Jonathan did reply, it was the most interesting reply of the five, because he explained his decision in the open:</p>
+<p>Then nothing happened for ten days, which is normal before a merge window. When Jonathan did reply, it was the most interesting reply of the six, because he explained his decision in the open:</p>
 <blockquote class="blockquote">
 <p>In in two minds about this. It is preventing unintuitive behaviour but we shouldn’t have any cases that crash or anything like that.</p>
 <p>Given the code in question is likely to be replaced shortly anyway by Rodrigo’s rework applying this for backporting purposes makes me nervous even though it looks fine. I also don’t want to delay Rodrigo’s work by having this go in via a different branch.</p>
@@ -721,13 +726,48 @@ Figure&nbsp;5: <code>channel_users[]</code> for two write sequences. Before the 
 </blockquote>
 <p>Getting the code right was only part of it. Jonathan also had to weigh the risk of a backport against a bug that doesn’t crash anything, and to fit the patch around someone else’s larger series. His answer was to take it through the development branch rather than <code>fixes-togreg</code>, so Rodrigo could rebase on top of it, while still marking it for stable. I didn’t know about any of these trade-offs when I sent v1.</p>
 </section>
+<section id="sx9310-no-hysteresis-reported-as-the-whole-threshold" class="level2">
+<h2 class="anchored" data-anchor-id="sx9310-no-hysteresis-reported-as-the-whole-threshold">sx9310: no hysteresis, reported as the whole threshold</h2>
+<p>The SX9310 can apply hysteresis to its proximity threshold, so that a reading hovering near the threshold doesn’t make the close/far event flicker. The 2-bit <code>PROXHYST</code> field in <code>PROX_CTRL10</code> selects no hysteresis, or 1/16, 1/8 or 1/4 of the threshold. The driver shows it to userspace as the event’s <code>hysteresis</code> attribute, in the same units as the threshold, and <code>sx9310_read_hysteresis()</code> converted the field like this:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>    regval <span class="op">=</span> FIELD_GET<span class="op">(</span>SX9310_REG_PROX_CTRL10_HYST_MASK<span class="op">,</span> regval<span class="op">);</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(!</span>regval<span class="op">)</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>        regval <span class="op">=</span> <span class="dv">5</span><span class="op">;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">/* regval is at most 5 */</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">*</span>val <span class="op">=</span> pthresh <span class="op">&gt;&gt;</span> <span class="op">(</span><span class="dv">5</span> <span class="op">-</span> regval<span class="op">);</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Codes 1 to 3 become shifts of 4, 3 and 2, which is right. But code 0, “no hysteresis”, is turned into 5, a shift of 0, so the driver reported a hysteresis equal to the whole threshold, the opposite of what the register says. The write side doesn’t accept that value either. <code>sx9310_write_hysteresis()</code> only takes 0 or one of the three fractions, so writing back the value that was just read fails with <code>-EINVAL</code>. Any tool that saves and restores event settings would trip over this on a sensor with hysteresis turned off, and it has been this way since 2020.</p>
+<p>The <code>sx9324</code> and <code>sx9360</code> drivers, which came later, use the same shifts and return 0 for code 0, so the fix was to do the same. As with the sx9500, I don’t have the hardware, so I replayed the old and new read functions, together with the unchanged write function, in userspace for every threshold code and every hysteresis code:</p>
+<div id="fig-sx9310" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-sx9310-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="sx9310_hyst.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-sx9310-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6: Left: the hysteresis <code>sx9310_read_hysteresis()</code> reports for each of the 32 threshold codes. With hysteresis off (code 0), it used to report the whole threshold (red) and now reports 0 (blue, dashed). Codes 1 to 3 (grey) are unchanged. Right: writing back the value that was just read. Before the fix, this failed with <code>-EINVAL</code> for code 0 at every threshold. The grey cells are small thresholds where the fraction rounds down to 0, which the write side takes as “off”. That behaviour is unchanged.
+</figcaption>
+</figure>
+</div>
+<p>Andy’s review of v1 was one line, followed by the four lines of code he wanted:</p>
+<blockquote class="blockquote">
+<p>While at it, invert the conditional.</p>
+<pre><code>  if (regval)
+      *val = pthresh &gt;&gt; (5 - regval);
+  else
+      *val = 0;</code></pre>
+</blockquote>
+<p>With the non-zero case first, the code reads in the same order as its explanation: if there is hysteresis, shift the threshold; otherwise report 0. I sent v2 forty minutes after his review. Then it waited for the merge window to close, and on 2 November Jonathan applied it:</p>
+<blockquote class="blockquote">
+<p>Seems correct to me, but not massively urgent. So with that in mind I’ve queued this one on the testing branch of iio.git. I’ve just rebased that on the newly available 7.4-rc1, so will give it a few days exposure to the bots before pushing out for linux-next.</p>
+</blockquote>
+<p>Like the parser fix, it went through the development branch rather than <code>fixes-togreg</code>, and Jonathan still added <code>Cc: stable</code> when he applied it. A wrong value in sysfs is a real bug, but nothing crashes, and he weighed it that way.</p>
+</section>
 <section id="what-these-reviews-taught-me" class="level2">
 <h2 class="anchored" data-anchor-id="what-these-reviews-taught-me">What these reviews taught me</h2>
-<p>Looking back over the five threads, very few of the review comments were about whether the code worked. They were about whether the <em>next</em> person could read it:</p>
+<p>Looking back over the six threads, very few of the review comments were about whether the code worked. They were about whether the <em>next</em> person could read it:</p>
 <div id="tbl-review" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-review-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;1: The review comments on the five patches, and how each was addressed.
+Table&nbsp;1: The review comments on the six patches, and how each was addressed.
 </figcaption>
 <div aria-describedby="tbl-review-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -804,6 +844,11 @@ Table&nbsp;1: The review comments on the five patches, and how each was addresse
 <td>Add tests?</td>
 <td>Left out after Rodrigo explained the parser is being replaced</td>
 </tr>
+<tr class="odd">
+<td>sx9310</td>
+<td>“Invert the conditional”</td>
+<td>Non-zero case first</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -815,7 +860,7 @@ Table&nbsp;1: The review comments on the five patches, and how each was addresse
 <li><strong>Units belong in names.</strong> <code>period_ticks</code>, <code>freq_uHz</code> and <code>MICROHZ_PER_HZ</code> make the code document itself.</li>
 <li><strong>The changelog is part of the patch.</strong> Each v2 listed every comment and who made it, and said what I hadn’t done and why. That is what let Jonathan apply the sx9360 fix fifteen minutes after it arrived.</li>
 <li><strong>Look for a helper before writing one.</strong> My v1 overflow checks were correct, but <code>overflow.h</code> already had them. Using the helper made v2 shorter and easier to review.</li>
-<li><strong>Say what you tested.</strong> All five patches say “Compile-tested only” under the <code>---</code> line, along with whatever checking I could do without the hardware. Maintainers can only judge the risk of a patch if you’re honest about this.</li>
+<li><strong>Say what you tested.</strong> All six patches say “Compile-tested only” under the <code>---</code> line, along with whatever checking I could do without the hardware. Maintainers can only judge the risk of a patch if you’re honest about this.</li>
 </ul>
 </section>
 <section id="results" class="level2">
@@ -823,7 +868,7 @@ Table&nbsp;1: The review comments on the five patches, and how each was addresse
 <div id="tbl-results" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-results-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;2: The five patches. The <code>iio.git</code> branches are rebased from time to time, so the commit IDs may change.
+Table&nbsp;2: The six patches. The <code>iio.git</code> branches are rebased from time to time, so the commit IDs may change.
 </figcaption>
 <div aria-describedby="tbl-results-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -840,25 +885,25 @@ Table&nbsp;2: The five patches. The <code>iio.git</code> branches are rebased fr
 <td>sx9324: fix out-of-bounds read of scan period table</td>
 <td>iio fixes, stable</td>
 <td>Andy Shevchenko</td>
-<td><a href="https://lore.kernel.org/all/20261021225417.626946-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261023192700.221344-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=9cc70d11f23c">commit</a></td>
+<td><a href="https://lore.kernel.org/all/20261021225417.626946-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261023192700.221344-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&amp;id=7b5f54280f8e6ef07664f6705dd005feefbe87d1">commit</a></td>
 </tr>
 <tr class="even">
 <td>mcp3564: reject devices without match data</td>
 <td>iio fixes</td>
 <td>Andy Shevchenko</td>
-<td><a href="https://lore.kernel.org/all/20261021225431.627718-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261023185837.195943-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=bee7b8b5c5d0">commit</a></td>
+<td><a href="https://lore.kernel.org/all/20261021225431.627718-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261023185837.195943-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&amp;id=1e50a03490120f1978c323741013457bc5c4582c">commit</a></td>
 </tr>
 <tr class="odd">
 <td>sx9360: fix sampling frequency write and available range</td>
 <td>iio fixes, stable</td>
 <td>Andy Shevchenko (v1)</td>
-<td><a href="https://lore.kernel.org/all/20261024180149.144609-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261025221241.19596-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=065605c6a43b">commit</a></td>
+<td><a href="https://lore.kernel.org/all/20261024180149.144609-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261025221241.19596-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&amp;id=d252425c1533bfacd5940faa3371af82196bff5b">commit</a></td>
 </tr>
 <tr class="even">
 <td>sx9500: ignore event config writes that don’t change state</td>
 <td>iio fixes, stable</td>
 <td>—</td>
-<td><a href="https://lore.kernel.org/all/20261024175658.130546-1-kapoorarnav43@gmail.com/">patch</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=09f742b49cb2">commit</a></td>
+<td><a href="https://lore.kernel.org/all/20261024175658.130546-1-kapoorarnav43@gmail.com/">patch</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&amp;id=b8ed9165906597b69a46fabf39ab41690721ebe8">commit</a></td>
 </tr>
 <tr class="odd">
 <td>core: fix signed integer overflow in <code>iio_str_to_fixpoint()</code></td>
@@ -866,12 +911,18 @@ Table&nbsp;2: The five patches. The <code>iio.git</code> branches are rebased fr
 <td>Nuno Sá</td>
 <td><a href="https://lore.kernel.org/all/20261021225306.623361-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261022140353.24213-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&amp;id=962311944f1b26578a8ff30357b95b815fb75494">commit</a></td>
 </tr>
+<tr class="even">
+<td>sx9310: report a hysteresis of 0 when it is disabled</td>
+<td>iio testing, stable</td>
+<td>Andy Shevchenko (v1)</td>
+<td><a href="https://lore.kernel.org/all/20261026100041.16018-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261026112054.59895-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&amp;id=ea21edc492df8bea4a9aa6516ab13cd9651edf87">commit</a></td>
+</tr>
 </tbody>
 </table>
 </div>
 </figure>
 </div>
-<p>That brings my total to fourteen applied patches. I have a few more SX9xxx patches on the list as I write this, a series that keeps the IRQ balanced across suspend and resume, and a hysteresis fix for the <code>sx9310</code>, so this family of drivers may get one more post.</p>
+<p>That brings my total to fifteen applied patches. I have several more SX9xxx patches on the list as I write this, including a series that keeps the IRQ balanced across suspend and resume and fixes for the hardware gain handling, so this family of drivers may get one more post.</p>
 </section>
 <section id="acknowledgements" class="level2">
 <h2 class="anchored" data-anchor-id="acknowledgements">Acknowledgements</h2>

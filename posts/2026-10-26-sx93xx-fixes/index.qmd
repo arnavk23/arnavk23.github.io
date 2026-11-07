@@ -1,7 +1,7 @@
 ---
-title: "My LFX Linux Kernel Mentorship: A NAK, Some Homework, and Fourteen Patches"
-description: "An account of my LFX Linux Kernel Bug Fixing Mentorship, through the five IIO fixes that brought my total to fourteen applied patches: three in the Semtech SX9xxx proximity drivers, one in the MCP3564 ADC and one in the IIO core. It covers the bugs, the review that shaped each fix, and what I learned from my first NAK."
-date: 2026-10-26
+title: "My LFX Linux Kernel Mentorship: A NAK, Some Homework, and Fifteen Patches"
+description: "An account of my LFX Linux Kernel Bug Fixing Mentorship, through the six IIO fixes that brought my total to fifteen applied patches: four in the Semtech SX9xxx proximity drivers, one in the MCP3564 ADC and one in the IIO core. It covers the bugs, the review that shaped each fix, and what I learned from my first NAK."
+date: 2026-11-08
 draft: false
 categories: [linux-kernel, lfx, iio, open-source]
 image: cover.png
@@ -12,24 +12,25 @@ toc-location: right
 This is my write-up of the [LFX Linux Kernel Bug Fixing Mentorship](https://wiki.linuxfoundation.org/lkmp)
 with Shuah Khan. My [first post](../2026-10-22-lfx-kernel-mentorship/index.qmd) covered
 how I got my first nine patches into the kernel, and said that kernel maintainers were
-much kinder than their reputation. This post covers the next five, which brought my
-total to fourteen. One review of them included the word "NAK", followed by a homework
+much kinder than their reputation. This post covers the next six, which brought my
+total to fifteen. One review of them included the word "NAK", followed by a homework
 assignment. I still stand by what I wrote.
 
 Between 22 and 26 October, Jonathan Cameron applied four more of my patches to the
 `fixes-togreg` branch of [`iio.git`](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/).
 Three are in the Semtech SX9xxx capacitive proximity drivers (`sx9324`, `sx9360`
-and `sx9500`). The fourth is in the Microchip `mcp3564` ADC driver. A fifth patch,
-an overflow fix in the IIO core's number parser, followed on 2 November and went to the
-`testing` branch. All five are bug fixes with a `Fixes:` tag, and four of them are marked
-for stable kernels. Andy Shevchenko reviewed four of the five, and each review
-changed the patch for the better.
+and `sx9500`). The fourth is in the Microchip `mcp3564` ADC driver. Two more,
+an overflow fix in the IIO core's number parser and a hysteresis fix in the `sx9310`,
+followed on 2 November and went to the `testing` branch. All six are bug fixes with a
+`Fixes:` tag, and five of them are marked for stable kernels. Andy Shevchenko reviewed
+five of the six, and each review changed the patch for the better.
 
-*Updated 2 November 2026 with the `iio_str_to_fixpoint()` fix.*
+*First published on 26 October 2026, and updated on 2 November with the
+`iio_str_to_fixpoint()` fix and on 8 November with the `sx9310` fix.*
 
 ```{mermaid}
 %%| label: fig-timeline
-%%| fig-cap: "The five patches, from first submission to application (times in IST). Three of them needed a v2 after review; the sx9500 fix was applied as sent."
+%%| fig-cap: "The six patches, from first submission to application (times in IST). Four of them needed a v2 after review; the sx9500 fix was applied as sent."
 gantt
     todayMarker off
     dateFormat YYYY-MM-DD HH:mm
@@ -53,6 +54,10 @@ gantt
     v1 in review                  :done, 2026-10-22 04:22, 2026-10-22 19:33
     v2 (Reviewed-by, then waiting) :active, 2026-10-22 19:33, 2026-11-02 05:10
     applied                       :milestone, 2026-11-02 05:10, 0d
+    section sx9310
+    v1 in review                  :done, 2026-10-26 15:30, 2026-10-26 16:50
+    v2                            :active, 2026-10-26 16:50, 2026-11-02 06:17
+    applied                       :milestone, 2026-11-02 06:17, 0d
 ```
 
 ## sx9324: a table that was half as long as it should be
@@ -326,7 +331,7 @@ so the fix brings it in line:
 
 I don't have SX9500 hardware, so I checked both write sequences with a userspace
 model of the counting and said exactly that below the `---` line. This was the only
-one of the five that went in as first sent. Jonathan's reply in full:
+one of the six that went in as first sent. Jonathan's reply in full:
 
 > Applied and marked for stable.
 >
@@ -419,7 +424,7 @@ morning:
 > Reviewed-by: Nuno Sá \<nuno.sa@analog.com\>
 
 Then nothing happened for ten days, which is normal before a merge window. When
-Jonathan did reply, it was the most interesting reply of the five, because he
+Jonathan did reply, it was the most interesting reply of the six, because he
 explained his decision in the open:
 
 > In in two minds about this. It is preventing unintuitive behaviour but
@@ -441,9 +446,73 @@ someone else's larger series. His answer was to take it through the development 
 rather than `fixes-togreg`, so Rodrigo could rebase on top of it, while still marking it
 for stable. I didn't know about any of these trade-offs when I sent v1.
 
+## sx9310: no hysteresis, reported as the whole threshold
+
+The SX9310 can apply hysteresis to its proximity threshold, so that a reading
+hovering near the threshold doesn't make the close/far event flicker. The 2-bit
+`PROXHYST` field in `PROX_CTRL10` selects no hysteresis, or 1/16, 1/8 or 1/4 of the
+threshold. The driver shows it to userspace as the event's `hysteresis` attribute,
+in the same units as the threshold, and `sx9310_read_hysteresis()` converted the
+field like this:
+
+```c
+	regval = FIELD_GET(SX9310_REG_PROX_CTRL10_HYST_MASK, regval);
+	if (!regval)
+		regval = 5;
+
+	/* regval is at most 5 */
+	*val = pthresh >> (5 - regval);
+```
+
+Codes 1 to 3 become shifts of 4, 3 and 2, which is right. But code 0, "no
+hysteresis", is turned into 5, a shift of 0, so the driver reported a hysteresis
+equal to the whole threshold, the opposite of what the register says. The write
+side doesn't accept that value either. `sx9310_write_hysteresis()` only takes 0 or
+one of the three fractions, so writing back the value that was just read fails with
+`-EINVAL`. Any tool that saves and restores event settings would trip over this on
+a sensor with hysteresis turned off, and it has been this way since 2020.
+
+The `sx9324` and `sx9360` drivers, which came later, use the same shifts and return
+0 for code 0, so the fix was to do the same. As with the sx9500, I don't have the
+hardware, so I replayed the old and new read functions, together with the unchanged
+write function, in userspace for every threshold code and every hysteresis code:
+
+![Left: the hysteresis `sx9310_read_hysteresis()` reports for each of the 32
+threshold codes. With hysteresis off (code 0), it used to report the whole
+threshold (red) and now reports 0 (blue, dashed). Codes 1 to 3 (grey) are
+unchanged. Right: writing back the value that was just read. Before the fix, this
+failed with `-EINVAL` for code 0 at every threshold. The grey cells are small
+thresholds where the fraction rounds down to 0, which the write side takes as
+"off". That behaviour is unchanged.](sx9310_hyst.png){#fig-sx9310}
+
+Andy's review of v1 was one line, followed by the four lines of code he wanted:
+
+> While at it, invert the conditional.
+>
+> ```
+> 	if (regval)
+> 		*val = pthresh >> (5 - regval);
+> 	else
+> 		*val = 0;
+> ```
+
+With the non-zero case first, the code reads in the same order as its explanation:
+if there is hysteresis, shift the threshold; otherwise report 0. I sent v2 forty
+minutes after his review. Then it waited for the merge window to close, and on
+2 November Jonathan applied it:
+
+> Seems correct to me, but not massively urgent. So with that in mind
+> I've queued this one on the testing branch of iio.git.
+> I've just rebased that on the newly available 7.4-rc1, so will give
+> it a few days exposure to the bots before pushing out for linux-next.
+
+Like the parser fix, it went through the development branch rather than
+`fixes-togreg`, and Jonathan still added `Cc: stable` when he applied it. A wrong
+value in sysfs is a real bug, but nothing crashes, and he weighed it that way.
+
 ## What these reviews taught me
 
-Looking back over the five threads, very few of the review comments were about
+Looking back over the six threads, very few of the review comments were about
 whether the code worked. They were about whether the *next* person could read it:
 
 | Patch | Review comment | What I changed |
@@ -460,8 +529,9 @@ whether the code worked. They were about whether the *next* person could read it
 | iio core | Use `overflow.h`, drop the casts | `check_mul_overflow()` / `check_add_overflow()` on plain `int`s |
 | iio core | Add a `Fixes:` tag | Added |
 | iio core | Add tests? | Left out after Rodrigo explained the parser is being replaced |
+| sx9310 | "Invert the conditional" | Non-zero case first |
 
-: The review comments on the five patches, and how each was addressed. {#tbl-review}
+: The review comments on the six patches, and how each was addressed. {#tbl-review}
 
 A few habits came out of this week:
 
@@ -476,7 +546,7 @@ A few habits came out of this week:
 - **Look for a helper before writing one.** My v1 overflow checks were correct,
   but `overflow.h` already had them. Using the helper made v2 shorter and easier to
   review.
-- **Say what you tested.** All five patches say "Compile-tested only" under the `---`
+- **Say what you tested.** All six patches say "Compile-tested only" under the `---`
   line, along with whatever checking I could do without the hardware. Maintainers
   can only judge the risk of a patch if you're honest about this.
 
@@ -484,19 +554,20 @@ A few habits came out of this week:
 
 | Patch | Tree | Reviewed by | Links |
 |---|---|---|---|
-| sx9324: fix out-of-bounds read of scan period table | iio fixes, stable | Andy Shevchenko | [v1](https://lore.kernel.org/all/20261021225417.626946-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261023192700.221344-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=9cc70d11f23c) |
-| mcp3564: reject devices without match data | iio fixes | Andy Shevchenko | [v1](https://lore.kernel.org/all/20261021225431.627718-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261023185837.195943-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=bee7b8b5c5d0) |
-| sx9360: fix sampling frequency write and available range | iio fixes, stable | Andy Shevchenko (v1) | [v1](https://lore.kernel.org/all/20261024180149.144609-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261025221241.19596-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=065605c6a43b) |
-| sx9500: ignore event config writes that don't change state | iio fixes, stable | — | [patch](https://lore.kernel.org/all/20261024175658.130546-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?id=09f742b49cb2) |
+| sx9324: fix out-of-bounds read of scan period table | iio fixes, stable | Andy Shevchenko | [v1](https://lore.kernel.org/all/20261021225417.626946-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261023192700.221344-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&id=7b5f54280f8e6ef07664f6705dd005feefbe87d1) |
+| mcp3564: reject devices without match data | iio fixes | Andy Shevchenko | [v1](https://lore.kernel.org/all/20261021225431.627718-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261023185837.195943-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&id=1e50a03490120f1978c323741013457bc5c4582c) |
+| sx9360: fix sampling frequency write and available range | iio fixes, stable | Andy Shevchenko (v1) | [v1](https://lore.kernel.org/all/20261024180149.144609-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261025221241.19596-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&id=d252425c1533bfacd5940faa3371af82196bff5b) |
+| sx9500: ignore event config writes that don't change state | iio fixes, stable | — | [patch](https://lore.kernel.org/all/20261024175658.130546-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&id=b8ed9165906597b69a46fabf39ab41690721ebe8) |
 | core: fix signed integer overflow in `iio_str_to_fixpoint()` | iio testing, stable | Nuno Sá | [v1](https://lore.kernel.org/all/20261021225306.623361-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261022140353.24213-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&id=962311944f1b26578a8ff30357b95b815fb75494) |
+| sx9310: report a hysteresis of 0 when it is disabled | iio testing, stable | Andy Shevchenko (v1) | [v1](https://lore.kernel.org/all/20261026100041.16018-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261026112054.59895-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&id=ea21edc492df8bea4a9aa6516ab13cd9651edf87) |
 
-: The five patches. The `iio.git` branches are rebased from time to time, so the
+: The six patches. The `iio.git` branches are rebased from time to time, so the
 commit IDs may change. {#tbl-results}
 
-That brings my total to fourteen applied patches. I have a few more SX9xxx patches
-on the list as I write this, a series that keeps the IRQ balanced across suspend
-and resume, and a hysteresis fix for the `sx9310`, so this family of drivers
-may get one more post.
+That brings my total to fifteen applied patches. I have several more SX9xxx patches
+on the list as I write this, including a series that keeps the IRQ balanced across
+suspend and resume and fixes for the hardware gain handling, so this family of
+drivers may get one more post.
 
 ## Acknowledgements
 
