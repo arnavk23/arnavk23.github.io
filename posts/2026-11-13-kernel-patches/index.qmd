@@ -1,0 +1,221 @@
+---
+title: "After the Mentorship: More Kernel Patches"
+description: "A running log of my Linux kernel patches applied after the LFX mentorship, starting with a vmxnet3 fix found by syzbot. For each one: the bug, the review that shaped it, and where it landed. I add each patch here as it is applied."
+date: 2026-11-13
+draft: false
+categories: [linux-kernel, networking, open-source]
+image: cover.png
+toc: true
+toc-location: right
+---
+
+My [LFX Linux Kernel Bug Fixing Mentorship](https://wiki.linuxfoundation.org/lkmp)
+with Shuah Khan has ended. My [main write-up](../2026-10-26-sx93xx-fixes/index.qmd)
+and my final report are with Shuah, so I am leaving that post as it is, at fifteen
+applied patches. I am still sending patches, though, and some of them were already on
+the mailing list when the mentorship ended. This post picks up from there. Each time a
+patch is applied, I will add a section about it, a row in the [results table](#results)
+and a bar in the timeline.
+
+The first one is in a network driver rather than IIO. It also taught me something that
+none of my IIO patches did: a correct fix can still be the wrong kind of fix for the
+tree you send it to.
+
+*First published on 13 November 2026 with the `vmxnet3` fix.*
+
+```{mermaid}
+%%| label: fig-timeline
+%%| fig-cap: "Each patch, from first submission to application (times in IST)."
+gantt
+    todayMarker off
+    dateFormat YYYY-MM-DD HH:mm
+    axisFormat %d %b
+    section vmxnet3
+    v1 in review (Reviewed-by, then deferred) :done, 2026-10-22 03:42, 2026-10-27 05:17
+    waiting for net-next to reopen            :done, 2026-10-27 05:17, 2026-11-10 21:10
+    v2                                        :active, 2026-11-10 21:10, 2026-11-13 00:00
+    applied                                   :milestone, 2026-11-13 00:00, 0d
+```
+
+## vmxnet3: a DMA mapping of memory that can't be mapped
+
+`vmxnet3` is the driver for VMware's paravirtual network card, the one most Linux
+virtual machines on ESXi use. syzbot, Google's kernel fuzzer, reported a warning from
+it while it was running with page allocation fault injection:
+
+```
+rejecting DMA map of vmalloc memory
+```
+
+The cause is in `vmxnet3_probe_device()`. The driver keeps its state in
+`struct vmxnet3_adapter`, which is the private area of the `net_device`.
+`alloc_netdev_mqs()` allocates that area with `kvzalloc()`. That function first tries
+for physically contiguous memory, and if that fails it falls back to `vmalloc()`. The
+adapter embeds 32 transmit and 32 receive queues, so it is well over a page, and a
+large contiguous allocation is exactly the kind that fails under memory pressure, or
+under fault injection.
+
+The driver then mapped the whole adapter for DMA:
+
+```c
+	adapter->adapter_pa = dma_map_single(&adapter->pdev->dev, adapter,
+					     sizeof(struct vmxnet3_adapter),
+					     DMA_TO_DEVICE);
+	if (dma_mapping_error(&adapter->pdev->dev, adapter->adapter_pa)) {
+		dev_err(&pdev->dev, "Failed to map dma\n");
+		err = -EFAULT;
+		goto err_set_mask;
+	}
+```
+
+`dma_map_single()` only works on memory that is physically contiguous, so when the
+adapter is in vmalloc memory it warns and returns an error. Probe then fails, and the
+VM has no network card.
+
+```{mermaid}
+%%| label: fig-vmxnet3
+%%| fig-cap: "Where the adapter's memory comes from, and what probe did with it. Only the vmalloc fallback triggered the bug."
+flowchart TD
+    A["alloc_netdev_mqs()"] --> B["kvzalloc(): contiguous allocation"]
+    B -- succeeds --> C[adapter in contiguous memory]
+    B -- fails --> D["vmalloc() fallback"]
+    C --> E["dma_map_single(adapter)"]
+    D --> F["dma_map_single(adapter)"]
+    E --> G[probe continues]
+    F --> H["before: WARNING, probe fails with -EFAULT<br/>after: nothing is mapped, probe continues"]
+```
+
+### What was the mapping for?
+
+Before deleting anything, I needed to know what the device did with this address. It
+goes into the area the driver shares with the virtual device, as the "driver data":
+
+```c
+	devRead->misc.ddPA = cpu_to_le64(adapter->adapter_pa);
+	devRead->misc.ddLen = cpu_to_le32(sizeof(struct vmxnet3_adapter));
+```
+
+Three things suggested the device doesn't need it:
+
+- **The same driver already opts out elsewhere.** Every per-queue descriptor in
+  `vmxnet3` reports "no driver data" with `ddPA = ~0ULL` and `ddLen = 0`.
+- **Other drivers for the same device never set it.** The vmxnet3 driver in DPDK
+  leaves `misc.ddPA` alone entirely.
+- **The device couldn't use it anyway.** The adapter is full of kernel pointers and
+  locks. A hypervisor has no meaningful way to interpret a copy of it.
+
+So the fix removes the mapping and reports no driver data in the shared area, in
+the same way the queues already do:
+
+```diff
+-	devRead->misc.ddPA = cpu_to_le64(adapter->adapter_pa);
+-	devRead->misc.ddLen = cpu_to_le32(sizeof(struct vmxnet3_adapter));
++	devRead->misc.ddPA = cpu_to_le64(~0ULL);
++	devRead->misc.ddLen = cpu_to_le32(0);
+```
+
+The rest of the patch is deletion: the `dma_map_single()` call, its error path, the
+two `dma_unmap_single()` calls in the probe error path and in remove, and the
+`adapter_pa` field. In total it is 3 lines added and 17 removed, and probe loses a way
+to fail.
+
+### Testing it without VMware
+
+I don't have an ESXi host, but QEMU emulates a vmxnet3 card (`-device vmxnet3`), and
+the kernel has `fail_page_alloc` to make page allocations fail on demand. I built a
+kernel with KASAN and `CONFIG_DMA_API_DEBUG`, and tested three things before and after
+the patch:
+
+| Test | Before | After |
+|---|---|---|
+| syzbot's C reproducer | WARNING, probe fails with `-EFAULT` | No warning |
+| QEMU's emulated vmxnet3, normal boot | Probes, link up, ping works | Same |
+| Unbind and rebind the NIC with order ≥ 4 allocations failing | WARNING, probe fails, the NIC is gone | Binds, ping works |
+
+: How I tested the vmxnet3 fix in QEMU. {#tbl-vmxnet3-tests}
+
+The third row is the one that matters. It is the real-world version of syzbot's
+report: a VM under memory pressure that reloads the driver and loses its network.
+I listed all of this under the `---` line and added "Not tested on ESXi".
+
+### Review: "this does not seem like a real fix"
+
+Simon Horman reviewed v1 four days later and gave it a `Reviewed-by:` with no
+changes. A few hours later Jakub Kicinski, one of the networking maintainers, replied:
+
+> Sounds fair but this does not seem like a real fix.
+> If nobody complained about this failure mode for 13 years
+> chances are we break more than we fix here.
+>
+> Please repost this for net-next in a couple of weeks without
+> a Fixes tag.
+>
+> Also please remove the "never synced" stuff. That's purely
+> relevant for intentionally hamstrung kernels. This is virt,
+> there's no DMA to sync other than swiotlb.
+
+followed by `pw-bot: defer`, which tells the netdev patchwork bot to set the patch
+aside.
+
+Neither point was about whether the code was right. They were about where it belonged.
+
+**`net` versus `net-next`.** I had sent v1 to `net`, the tree for fixes that go to
+Linus during the current release cycle and then to stable kernels, and I had added a
+`Fixes:` tag pointing at the 2013 commit that introduced the mapping. Jakub's point was
+that this is not how a maintainer measures a bug. The failure needs fault injection or
+serious memory pressure, nobody had reported it in thirteen years, and the patch
+changes what the driver tells a hypervisor I could not test against. Backporting that
+to every stable kernel risks more than it fixes. As a cleanup in `net-next`, it gets a
+full release cycle of testing first. When he deferred it, `net-next` was closed for the
+merge window, so "a couple of weeks" meant waiting for it to reopen.
+
+**"Never synced".** My commit message argued that the driver data was useless because
+the mapping was `DMA_TO_DEVICE`, made once and never synced, so the device could only
+ever see a stale copy. That sounded convincing to me, but Jakub pointed out that it
+doesn't apply here. A virtual device reads guest memory directly, so syncing only
+matters with a bounce buffer such as swiotlb. The argument would have been true for
+real hardware, but it was wrong for this driver. The other reasons, the per-queue
+descriptors and DPDK, were enough on their own, so v2 drops that sentence.
+
+v2 had the same code. It targets `net-next`, has no `Fixes:` tag, drops the sync
+argument and carries Simon's `Reviewed-by:`. I sent it the day after `net-next`
+reopened, and Jakub applied it two days later.
+
+## What these reviews taught me
+
+| Patch | Review comment | What I changed |
+|---|---|---|
+| vmxnet3 | "Does not seem like a real fix", send to `net-next` | Retargeted to `net-next` and waited for it to reopen |
+| vmxnet3 | Drop the `Fixes:` tag | Dropped; kept `Reported-by:` and `Closes:` for syzbot |
+| vmxnet3 | Remove the "never synced" argument | Removed; the other reasons stand on their own |
+
+: The review comments on each patch, and how each was addressed. {#tbl-review}
+
+- **A bug report is not automatically a fix for stable.** Whether something goes to
+  `net` or `net-next` depends on who is actually hurt and how risky the change is, not
+  on whether a fuzzer found it. Before adding a `Fixes:` tag, I now ask whether a
+  stable maintainer would want this backported to a kernel running in production.
+- **Every argument in a commit message has to hold.** One weak reason in a list of
+  good ones is what the reviewer will reply to. If a reason only holds on real
+  hardware, it doesn't belong in a commit message for a paravirtual driver.
+- **Deferred is not rejected.** `pw-bot: defer` with "repost in a couple of weeks" is
+  an instruction, not a no. I resent the patch the day after the tree
+  reopened.
+
+## Results
+
+| Patch | Tree | Reviewed by | Links |
+|---|---|---|---|
+| vmxnet3: stop DMA mapping the adapter structure | net-next | Simon Horman | [v1](https://lore.kernel.org/all/20261021221221.502428-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261110154048.143227-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/commit/?id=42abea827cf2876e5e678db632d0965780e57706) |
+
+: Patches applied since the mentorship. {#tbl-results}
+
+That brings my total to sixteen applied patches. Several more are on the list as I
+write this, including more SX9xxx fixes, and I will add them here as they are applied.
+
+## Acknowledgements
+
+Thank you to Simon Horman for the review, and to Jakub Kicinski for explaining why
+this belonged in `net-next`, which taught me more than a quick "applied" would have.
+
+*Cover: Tux, by Larry Ewing, created with The GIMP.*
