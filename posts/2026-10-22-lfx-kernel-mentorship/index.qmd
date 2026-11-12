@@ -321,3 +321,5 @@ I am grateful to Shuah Khan for running the mentorship, and to everyone who revi
 work: Jonathan Cameron, Andy Shevchenko, Jean-Baptiste Maneyrol, Joshua Crofts, Nuno Sá,
 Maxwell Doose, Tzung-Bi Shih, Simon Horman, Alex Austin, Paolo Abeni and Geert
 Uytterhoeven. Each of these patches is better because of them.
+
+*Cover: the Linux Kernel Mentorship Program logo, from The Linux Foundation. Tux, by Larry Ewing, created with The GIMP.*
