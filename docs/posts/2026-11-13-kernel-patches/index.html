@@ -8,7 +8,7 @@
 
 <meta name="author" content="Arnav Kapoor">
 <meta name="dcterms.date" content="2026-11-13">
-<meta name="description" content="A running log of my Linux kernel patches applied after the LFX mentorship, starting with a vmxnet3 fix found by syzbot. For each one: the bug, the review that shaped it, and where it landed. I add each patch here as it is applied.">
+<meta name="description" content="A running log of my Linux kernel patches applied after the LFX mentorship. For each one: the bug, the fix, the review, and where it landed.">
 
 <title>After the Mentorship: More Kernel Patches – arnavk23</title>
 <style>
@@ -116,10 +116,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
-<meta name="mermaid-theme" content="default">
-<script src="../../site_libs/quarto-diagram/mermaid.min.js"></script>
-<script src="../../site_libs/quarto-diagram/mermaid-init.js"></script>
-<link href="../../site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
 
 
 <link rel="stylesheet" href="../../styles.css">
@@ -358,22 +354,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#vmxnet3-a-dma-mapping-of-memory-that-cant-be-mapped" id="toc-vmxnet3-a-dma-mapping-of-memory-that-cant-be-mapped" class="nav-link active" data-scroll-target="#vmxnet3-a-dma-mapping-of-memory-that-cant-be-mapped">vmxnet3: a DMA mapping of memory that can’t be mapped</a>
-  <ul class="collapse">
-  <li><a href="#what-was-the-mapping-for" id="toc-what-was-the-mapping-for" class="nav-link" data-scroll-target="#what-was-the-mapping-for">What was the mapping for?</a></li>
-  <li><a href="#testing-it-without-vmware" id="toc-testing-it-without-vmware" class="nav-link" data-scroll-target="#testing-it-without-vmware">Testing it without VMware</a></li>
-  <li><a href="#review-this-does-not-seem-like-a-real-fix" id="toc-review-this-does-not-seem-like-a-real-fix" class="nav-link" data-scroll-target="#review-this-does-not-seem-like-a-real-fix">Review: “this does not seem like a real fix”</a></li>
-  </ul></li>
-  <li><a href="#alsa-my-laptop-was-matched-as-a-legion" id="toc-alsa-my-laptop-was-matched-as-a-legion" class="nav-link" data-scroll-target="#alsa-my-laptop-was-matched-as-a-legion">ALSA: my laptop was matched as a Legion</a>
-  <ul class="collapse">
-  <li><a href="#how-the-lookup-goes-wrong" id="toc-how-the-lookup-goes-wrong" class="nav-link" data-scroll-target="#how-the-lookup-goes-wrong">How the lookup goes wrong</a></li>
-  <li><a href="#the-fix-and-why-its-position-matters" id="toc-the-fix-and-why-its-position-matters" class="nav-link" data-scroll-target="#the-fix-and-why-its-position-matters">The fix, and why its position matters</a></li>
-  <li><a href="#testing-on-the-real-machine" id="toc-testing-on-the-real-machine" class="nav-link" data-scroll-target="#testing-on-the-real-machine">Testing on the real machine</a></li>
-  <li><a href="#review-applied-now.-thanks." id="toc-review-applied-now.-thanks." class="nav-link" data-scroll-target="#review-applied-now.-thanks.">Review: “Applied now. Thanks.”</a></li>
-  </ul></li>
-  <li><a href="#what-these-reviews-taught-me" id="toc-what-these-reviews-taught-me" class="nav-link" data-scroll-target="#what-these-reviews-taught-me">What these reviews taught me</a></li>
-  <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">Results</a></li>
-  <li><a href="#acknowledgements" id="toc-acknowledgements" class="nav-link" data-scroll-target="#acknowledgements">Acknowledgements</a></li>
+  <li><a href="#results" id="toc-results" class="nav-link active" data-scroll-target="#results">Results</a></li>
+  <li><a href="#vmxnet3-a-dma-mapping-of-memory-that-cant-be-mapped" id="toc-vmxnet3-a-dma-mapping-of-memory-that-cant-be-mapped" class="nav-link" data-scroll-target="#vmxnet3-a-dma-mapping-of-memory-that-cant-be-mapped">vmxnet3: a DMA mapping of memory that can’t be mapped</a></li>
+  <li><a href="#alsa-my-laptop-was-matched-as-a-legion" id="toc-alsa-my-laptop-was-matched-as-a-legion" class="nav-link" data-scroll-target="#alsa-my-laptop-was-matched-as-a-legion">ALSA: my laptop was matched as a Legion</a></li>
   </ul>
 </nav>
     </div>
@@ -394,7 +377,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <div>
   <div class="description">
-    A running log of my Linux kernel patches applied after the LFX mentorship, starting with a vmxnet3 fix found by syzbot. For each one: the bug, the review that shaped it, and where it landed. I add each patch here as it is applied.
+    A running log of my Linux kernel patches applied after the LFX mentorship. For each one: the bug, the fix, the review, and where it landed.
   </div>
 </div>
 
@@ -423,295 +406,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>My <a href="https://wiki.linuxfoundation.org/lkmp">LFX Linux Kernel Bug Fixing Mentorship</a> with Shuah Khan has ended. My <a href="../../posts/2026-10-26-sx93xx-fixes/index.html">main write-up</a> and my final report are with Shuah, so I am leaving that post as it is, at fifteen applied patches. I am still sending patches, though, and some of them were already on the mailing list when the mentorship ended. This post picks up from there. Each time a patch is applied, I will add a section about it, a row in the <a href="#results">results table</a> and a bar in the timeline.</p>
-<p>The first one is in a network driver rather than IIO. It also taught me something that none of my IIO patches did: a correct fix can still be the wrong kind of fix for the tree you send it to.</p>
-<p><em>First published on 13 November 2026 with the <code>vmxnet3</code> fix. Updated on 17 November 2026 with an ALSA fix for my own laptop.</em></p>
-<div class="cell" data-layout-align="default">
-<div class="cell-output-display">
-<div id="fig-timeline" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-timeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div>
-<pre class="mermaid mermaid-js" data-label="fig-timeline">gantt
-    todayMarker off
-    dateFormat YYYY-MM-DD HH:mm
-    axisFormat %d %b
-    section vmxnet3
-    v1 in review (Reviewed-by, then deferred) :done, 2026-10-22 03:42, 2026-10-27 05:17
-    waiting for net-next to reopen            :done, 2026-10-27 05:17, 2026-11-10 21:10
-    v2                                        :active, 2026-11-10 21:10, 2026-11-13 00:00
-    applied                                   :milestone, 2026-11-13 00:00, 0d
-    section ALSA quirk
-    v1                                        :active, 2026-11-17 01:25, 2026-11-17 14:27
-    applied                                   :milestone, 2026-11-17 14:27, 0d
-</pre>
-</div>
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-timeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: Each patch, from first submission to application (times in IST).
-</figcaption>
-</figure>
-</div>
-</div>
-</div>
-<section id="vmxnet3-a-dma-mapping-of-memory-that-cant-be-mapped" class="level2">
-<h2 class="anchored" data-anchor-id="vmxnet3-a-dma-mapping-of-memory-that-cant-be-mapped">vmxnet3: a DMA mapping of memory that can’t be mapped</h2>
-<p><code>vmxnet3</code> is the driver for VMware’s paravirtual network card, the one most Linux virtual machines on ESXi use. syzbot, Google’s kernel fuzzer, reported a warning from it while it was running with page allocation fault injection:</p>
-<pre><code>rejecting DMA map of vmalloc memory</code></pre>
-<p>The cause is in <code>vmxnet3_probe_device()</code>. The driver keeps its state in <code>struct vmxnet3_adapter</code>, which is the private area of the <code>net_device</code>. <code>alloc_netdev_mqs()</code> allocates that area with <code>kvzalloc()</code>. That function first tries for physically contiguous memory, and if that fails it falls back to <code>vmalloc()</code>. The adapter embeds 32 transmit and 32 receive queues, so it is well over a page, and a large contiguous allocation is exactly the kind that fails under memory pressure, or under fault injection.</p>
-<p>The driver then mapped the whole adapter for DMA:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>    adapter<span class="op">-&gt;</span>adapter_pa <span class="op">=</span> dma_map_single<span class="op">(&amp;</span>adapter<span class="op">-&gt;</span>pdev<span class="op">-&gt;</span>dev<span class="op">,</span> adapter<span class="op">,</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>                         <span class="kw">sizeof</span><span class="op">(</span><span class="kw">struct</span> vmxnet3_adapter<span class="op">),</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>                         DMA_TO_DEVICE<span class="op">);</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>dma_mapping_error<span class="op">(&amp;</span>adapter<span class="op">-&gt;</span>pdev<span class="op">-&gt;</span>dev<span class="op">,</span> adapter<span class="op">-&gt;</span>adapter_pa<span class="op">))</span> <span class="op">{</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>        dev_err<span class="op">(&amp;</span>pdev<span class="op">-&gt;</span>dev<span class="op">,</span> <span class="st">"Failed to map dma</span><span class="sc">\n</span><span class="st">"</span><span class="op">);</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        err <span class="op">=</span> <span class="op">-</span>EFAULT<span class="op">;</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">goto</span> err_set_mask<span class="op">;</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p><code>dma_map_single()</code> only works on memory that is physically contiguous, so when the adapter is in vmalloc memory it warns and returns an error. Probe then fails, and the VM has no network card.</p>
-<div class="cell" data-layout-align="default">
-<div class="cell-output-display">
-<div id="fig-vmxnet3" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-vmxnet3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div>
-<pre class="mermaid mermaid-js" data-label="fig-vmxnet3">flowchart TD
-    A["alloc_netdev_mqs()"] --&gt; B["kvzalloc(): contiguous allocation"]
-    B -- succeeds --&gt; C[adapter in contiguous memory]
-    B -- fails --&gt; D["vmalloc() fallback"]
-    C --&gt; E["dma_map_single(adapter)"]
-    D --&gt; F["dma_map_single(adapter)"]
-    E --&gt; G[probe continues]
-    F --&gt; H["before: WARNING, probe fails with -EFAULT&lt;br/&gt;after: nothing is mapped, probe continues"]
-</pre>
-</div>
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-vmxnet3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2: Where the adapter’s memory comes from, and what probe did with it. Only the vmalloc fallback triggered the bug.
-</figcaption>
-</figure>
-</div>
-</div>
-</div>
-<section id="what-was-the-mapping-for" class="level3">
-<h3 class="anchored" data-anchor-id="what-was-the-mapping-for">What was the mapping for?</h3>
-<p>Before deleting anything, I needed to know what the device did with this address. It goes into the area the driver shares with the virtual device, as the “driver data”:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>    devRead<span class="op">-&gt;</span>misc<span class="op">.</span>ddPA <span class="op">=</span> cpu_to_le64<span class="op">(</span>adapter<span class="op">-&gt;</span>adapter_pa<span class="op">);</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    devRead<span class="op">-&gt;</span>misc<span class="op">.</span>ddLen <span class="op">=</span> cpu_to_le32<span class="op">(</span><span class="kw">sizeof</span><span class="op">(</span><span class="kw">struct</span> vmxnet3_adapter<span class="op">));</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Three things suggested the device doesn’t need it:</p>
-<ul>
-<li><strong>The same driver already opts out elsewhere.</strong> Every per-queue descriptor in <code>vmxnet3</code> reports “no driver data” with <code>ddPA = ~0ULL</code> and <code>ddLen = 0</code>.</li>
-<li><strong>Other drivers for the same device never set it.</strong> The vmxnet3 driver in DPDK leaves <code>misc.ddPA</code> alone entirely.</li>
-<li><strong>The device couldn’t use it anyway.</strong> The adapter is full of kernel pointers and locks. A hypervisor has no meaningful way to interpret a copy of it.</li>
-</ul>
-<p>So the fix removes the mapping and reports no driver data in the shared area, in the same way the queues already do:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode diff code-with-copy"><code class="sourceCode diff"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="st">-   devRead-&gt;misc.ddPA = cpu_to_le64(adapter-&gt;adapter_pa);</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="st">-   devRead-&gt;misc.ddLen = cpu_to_le32(sizeof(struct vmxnet3_adapter));</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="va">+   devRead-&gt;misc.ddPA = cpu_to_le64(~0ULL);</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="va">+   devRead-&gt;misc.ddLen = cpu_to_le32(0);</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>The rest of the patch is deletion: the <code>dma_map_single()</code> call, its error path, the two <code>dma_unmap_single()</code> calls in the probe error path and in remove, and the <code>adapter_pa</code> field. In total it is 3 lines added and 17 removed, and probe loses a way to fail.</p>
-</section>
-<section id="testing-it-without-vmware" class="level3">
-<h3 class="anchored" data-anchor-id="testing-it-without-vmware">Testing it without VMware</h3>
-<p>I don’t have an ESXi host, but QEMU emulates a vmxnet3 card (<code>-device vmxnet3</code>), and the kernel has <code>fail_page_alloc</code> to make page allocations fail on demand. I built a kernel with KASAN and <code>CONFIG_DMA_API_DEBUG</code>, and tested three things before and after the patch:</p>
-<div id="tbl-vmxnet3-tests" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-vmxnet3-tests-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;1: How I tested the vmxnet3 fix in QEMU.
-</figcaption>
-<div aria-describedby="tbl-vmxnet3-tests-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table class="caption-top table">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Test</th>
-<th>Before</th>
-<th>After</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>syzbot’s C reproducer</td>
-<td>WARNING, probe fails with <code>-EFAULT</code></td>
-<td>No warning</td>
-</tr>
-<tr class="even">
-<td>QEMU’s emulated vmxnet3, normal boot</td>
-<td>Probes, link up, ping works</td>
-<td>Same</td>
-</tr>
-<tr class="odd">
-<td>Unbind and rebind the NIC with order ≥ 4 allocations failing</td>
-<td>WARNING, probe fails, the NIC is gone</td>
-<td>Binds, ping works</td>
-</tr>
-</tbody>
-</table>
-</div>
-</figure>
-</div>
-<p>The third row is the one that matters. It is the real-world version of syzbot’s report: a VM under memory pressure that reloads the driver and loses its network. I listed all of this under the <code>---</code> line and added “Not tested on ESXi”.</p>
-</section>
-<section id="review-this-does-not-seem-like-a-real-fix" class="level3">
-<h3 class="anchored" data-anchor-id="review-this-does-not-seem-like-a-real-fix">Review: “this does not seem like a real fix”</h3>
-<p>Simon Horman reviewed v1 four days later and gave it a <code>Reviewed-by:</code> with no changes. A few hours later Jakub Kicinski, one of the networking maintainers, replied:</p>
-<blockquote class="blockquote">
-<p>Sounds fair but this does not seem like a real fix. If nobody complained about this failure mode for 13 years chances are we break more than we fix here.</p>
-<p>Please repost this for net-next in a couple of weeks without a Fixes tag.</p>
-<p>Also please remove the “never synced” stuff. That’s purely relevant for intentionally hamstrung kernels. This is virt, there’s no DMA to sync other than swiotlb.</p>
-</blockquote>
-<p>followed by <code>pw-bot: defer</code>, which tells the netdev patchwork bot to set the patch aside.</p>
-<p>Neither point was about whether the code was right. They were about where it belonged.</p>
-<p><strong><code>net</code> versus <code>net-next</code>.</strong> I had sent v1 to <code>net</code>, the tree for fixes that go to Linus during the current release cycle and then to stable kernels, and I had added a <code>Fixes:</code> tag pointing at the 2013 commit that introduced the mapping. Jakub’s point was that this is not how a maintainer measures a bug. The failure needs fault injection or serious memory pressure, nobody had reported it in thirteen years, and the patch changes what the driver tells a hypervisor I could not test against. Backporting that to every stable kernel risks more than it fixes. As a cleanup in <code>net-next</code>, it gets a full release cycle of testing first. When he deferred it, <code>net-next</code> was closed for the merge window, so “a couple of weeks” meant waiting for it to reopen.</p>
-<p><strong>“Never synced”.</strong> My commit message argued that the driver data was useless because the mapping was <code>DMA_TO_DEVICE</code>, made once and never synced, so the device could only ever see a stale copy. That sounded convincing to me, but Jakub pointed out that it doesn’t apply here. A virtual device reads guest memory directly, so syncing only matters with a bounce buffer such as swiotlb. The argument would have been true for real hardware, but it was wrong for this driver. The other reasons, the per-queue descriptors and DPDK, were enough on their own, so v2 drops that sentence.</p>
-<p>v2 had the same code. It targets <code>net-next</code>, has no <code>Fixes:</code> tag, drops the sync argument and carries Simon’s <code>Reviewed-by:</code>. I sent it the day after <code>net-next</code> reopened, and Jakub applied it two days later.</p>
-</section>
-</section>
-<section id="alsa-my-laptop-was-matched-as-a-legion" class="level2">
-<h2 class="anchored" data-anchor-id="alsa-my-laptop-was-matched-as-a-legion">ALSA: my laptop was matched as a Legion</h2>
-<p>The second patch came from my own laptop, a Lenovo V14 G2 ITL. While I was looking at why its speakers sound thin, I noticed this line in <code>dmesg</code>:</p>
-<pre><code>ALC257: picked fixup  for codec SSID 17aa:38b7</code></pre>
-<p>A “fixup” in the HD-audio driver is a machine-specific tweak: pin configurations, amplifier setup, LED handling and so on. The driver picks one by looking up the machine’s IDs in a long table of quirks. There are two IDs to look at: the PCI subsystem ID of the audio controller, and the subsystem ID the audio codec itself reports. On most machines they are the same. On mine they are not:</p>
-<div id="tbl-alsa-ids" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-alsa-ids-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;2: The two IDs the driver can match on, for the V14 G2 ITL.
-</figcaption>
-<div aria-describedby="tbl-alsa-ids-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>ID</th>
-<th>Value</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>PCI subsystem ID (controller)</td>
-<td><code>17aa:380e</code></td>
-</tr>
-<tr class="even">
-<td>Codec subsystem ID (ALC257)</td>
-<td><code>17aa:38b7</code></td>
-</tr>
-</tbody>
-</table>
-</div>
-</figure>
-</div>
-<section id="how-the-lookup-goes-wrong" class="level3">
-<h3 class="anchored" data-anchor-id="how-the-lookup-goes-wrong">How the lookup goes wrong</h3>
-<p><code>snd_hda_pick_fixup()</code> tries the PCI ID first. Nothing in the table matches <code>17aa:380e</code>, so it falls back to the codec ID, <code>17aa:38b7</code>, and finds this entry:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>    SND_PCI_QUIRK<span class="op">(</span><span class="bn">0x17aa</span><span class="op">,</span> <span class="bn">0x38b7</span><span class="op">,</span> <span class="st">"Legion Slim 7 16APH8"</span><span class="op">,</span> ALC287_FIXUP_CS35L41_I2C_2<span class="op">),</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>That entry was written for a Lenovo Legion Slim 7 whose <em>PCI</em> ID is <code>17aa:38b7</code>. The codec-ID fallback doesn’t know that, so my laptop got the Legion’s fixup, which sets up two Cirrus Logic CS35L41 smart amplifiers. The V14 G2 ITL has no CS35L41 at all. Its speakers are driven directly by the ALC257 codec, through a single pin.</p>
-<div class="cell" data-layout-align="default">
-<div class="cell-output-display">
-<div id="fig-alsa" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-alsa-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div>
-<pre class="mermaid mermaid-js" data-label="fig-alsa">flowchart TD
-    A["snd_hda_pick_fixup()"] --&gt; B{"PCI ID 17aa:380e&lt;br/&gt;in the table?"}
-    B -- "no" --&gt; C{"codec ID 17aa:38b7"}
-    C -- "before" --&gt; D["Legion Slim 7 entry:&lt;br/&gt;CS35L41 amplifier fixup"]
-    C -- "after" --&gt; E["V14 G2 ITL entry:&lt;br/&gt;ALC269_FIXUP_LENOVO_XPAD_ACPI"]
-</pre>
-</div>
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-alsa-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;3: How the fixup is picked on the V14 G2 ITL, before and after the patch.
-</figcaption>
-</figure>
-</div>
-</div>
-</div>
-</section>
-<section id="the-fix-and-why-its-position-matters" class="level3">
-<h3 class="anchored" data-anchor-id="the-fix-and-why-its-position-matters">The fix, and why its position matters</h3>
-<p>The table has a macro for exactly this case, <code>HDA_CODEC_QUIRK()</code>, an entry that only matches on the codec ID. The patch adds one:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>    SND_PCI_QUIRK<span class="op">(</span><span class="bn">0x17aa</span><span class="op">,</span> <span class="bn">0x38b7</span><span class="op">,</span> <span class="st">"Legion Slim 7 16APH8"</span><span class="op">,</span> ALC287_FIXUP_CS35L41_I2C_2<span class="op">),</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">/* Lenovo V14 G2 ITL has PCI SSID 17aa:380e and codec SSID 17aa:38b7, which</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co">     * falls back to the Legion Slim 7 16APH8 entry above; this must come after it</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co">     */</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    HDA_CODEC_QUIRK<span class="op">(</span><span class="bn">0x17aa</span><span class="op">,</span> <span class="bn">0x38b7</span><span class="op">,</span> <span class="st">"Lenovo V14 G2 ITL"</span><span class="op">,</span> ALC269_FIXUP_LENOVO_XPAD_ACPI<span class="op">),</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>The interesting part is where it goes. The lookup walks the table once, in order, and stops at the first match. Codec-only entries are checked against the codec ID during that same walk. If my entry came <em>before</em> the Legion’s, a real Legion Slim 7, whose codec probably reports <code>17aa:38b7</code> too, would match my entry first and lose its amplifier setup. Placed <em>after</em> it, the Legion still matches on its PCI ID first, and my laptop, whose PCI ID matches nothing, carries on down the table to the new entry. The comment is there so the next person who sorts that table doesn’t move it.</p>
-<p>For the fixup itself I picked <code>ALC269_FIXUP_LENOVO_XPAD_ACPI</code>, because that is what the driver’s generic Lenovo fallback would give this machine if the Legion entry weren’t in the way. In other words, the patch gives the V14 G2 ITL the fixup it would have had all along.</p>
-</section>
-<section id="testing-on-the-real-machine" class="level3">
-<h3 class="anchored" data-anchor-id="testing-on-the-real-machine">Testing on the real machine</h3>
-<p>This time I had the hardware, so I could test the result rather than only build it. The driver lets you force a fixup by name from the kernel command line, and <code>lenovo-xpad-led</code> is the model name for the same fixup. After booting with it, <code>dmesg</code> said <code>picked fixup lenovo-xpad-led (model specified)</code>, and the speakers, headphones, headset microphone and internal microphone all worked as before.</p>
-<p>The thin speaker sound I started out with turned out to be a separate problem. The codec has a single speaker output, and Windows makes it sound better with signal processing that Linux doesn’t do. That is a job for an equaliser in PipeWire, not a kernel patch.</p>
-</section>
-<section id="review-applied-now.-thanks." class="level3">
-<h3 class="anchored" data-anchor-id="review-applied-now.-thanks.">Review: “Applied now. Thanks.”</h3>
-<p>I sent the patch to Takashi Iwai, the sound maintainer, at 01:25 IST, and he applied it the same afternoon, with no changes, to the <code>for-linus</code> branch of the sound tree. That branch carries fixes to Linus during the current release cycle, so this one should reach a release candidate soon rather than waiting for the next merge window.</p>
-</section>
-</section>
-<section id="what-these-reviews-taught-me" class="level2">
-<h2 class="anchored" data-anchor-id="what-these-reviews-taught-me">What these reviews taught me</h2>
-<div id="tbl-review" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-review-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;3: The review comments on each patch, and how each was addressed.
-</figcaption>
-<div aria-describedby="tbl-review-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table class="caption-top table">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Patch</th>
-<th>Review comment</th>
-<th>What I changed</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>vmxnet3</td>
-<td>“Does not seem like a real fix”, send to <code>net-next</code></td>
-<td>Retargeted to <code>net-next</code> and waited for it to reopen</td>
-</tr>
-<tr class="even">
-<td>vmxnet3</td>
-<td>Drop the <code>Fixes:</code> tag</td>
-<td>Dropped; kept <code>Reported-by:</code> and <code>Closes:</code> for syzbot</td>
-</tr>
-<tr class="odd">
-<td>vmxnet3</td>
-<td>Remove the “never synced” argument</td>
-<td>Removed; the other reasons stand on their own</td>
-</tr>
-<tr class="even">
-<td>ALSA quirk</td>
-<td>None, applied as sent</td>
-<td>Nothing</td>
-</tr>
-</tbody>
-</table>
-</div>
-</figure>
-</div>
-<ul>
-<li><strong>A bug report is not automatically a fix for stable.</strong> Whether something goes to <code>net</code> or <code>net-next</code> depends on who is actually hurt and how risky the change is, not on whether a fuzzer found it. Before adding a <code>Fixes:</code> tag, I now ask whether a stable maintainer would want this backported to a kernel running in production.</li>
-<li><strong>Every argument in a commit message has to hold.</strong> One weak reason in a list of good ones is what the reviewer will reply to. If a reason only holds on real hardware, it doesn’t belong in a commit message for a paravirtual driver.</li>
-<li><strong>Deferred is not rejected.</strong> <code>pw-bot: defer</code> with “repost in a couple of weeks” is an instruction, not a no. I resent the patch the day after the tree reopened.</li>
-<li><strong>Your own machine is a good place to look for bugs.</strong> The ALSA bug was in my <code>dmesg</code> the whole time. Having the hardware also meant I could test the change properly, which made the patch much easier to accept.</li>
-<li><strong>In a first-match table, order is part of the fix.</strong> The new entry is only correct because of where it sits, so I put that in a comment, not just in the commit message.</li>
-</ul>
-</section>
+<p>My <a href="https://wiki.linuxfoundation.org/lkmp">LFX Linux Kernel Bug Fixing Mentorship</a> with Shuah Khan has ended, and my <a href="../../posts/2026-10-26-sx93xx-fixes/index.html">main write-up</a> stays as it is. This post is the log of every patch I get merged from here on: a short entry for each one, and a row in the <a href="#results">results table</a>.</p>
 <section id="results" class="level2">
 <h2 class="anchored" data-anchor-id="results">Results</h2>
 <div id="tbl-results" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-results-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;4: Patches applied since the mentorship.
+Table&nbsp;1: Patches applied since the mentorship.
 </figcaption>
 <div aria-describedby="tbl-results-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -719,7 +420,6 @@ Table&nbsp;4: Patches applied since the mentorship.
 <tr class="header">
 <th>Patch</th>
 <th>Tree</th>
-<th>Reviewed by</th>
 <th>Links</th>
 </tr>
 </thead>
@@ -727,13 +427,11 @@ Table&nbsp;4: Patches applied since the mentorship.
 <tr class="odd">
 <td>vmxnet3: stop DMA mapping the adapter structure</td>
 <td>net-next</td>
-<td>Simon Horman</td>
 <td><a href="https://lore.kernel.org/all/20261021221221.502428-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261110154048.143227-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/commit/?id=42abea827cf2876e5e678db632d0965780e57706">commit</a></td>
 </tr>
 <tr class="even">
 <td>ALSA: hda/realtek: Don’t apply the Legion Slim 7 quirk to Lenovo V14 G2 ITL</td>
 <td>sound (<code>for-linus</code>)</td>
-<td>Applied by Takashi Iwai</td>
 <td><a href="https://lore.kernel.org/all/20261116195503.11530-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound.git/commit/?h=for-linus&amp;id=a7c800982bd0cc704a92c3b616e8bb049f2e68fa">commit</a></td>
 </tr>
 </tbody>
@@ -741,11 +439,33 @@ Table&nbsp;4: Patches applied since the mentorship.
 </div>
 </figure>
 </div>
-<p>That brings my total to seventeen applied patches. Several more are on the list as I write this, including more SX9xxx fixes, and I will add them here as they are applied.</p>
 </section>
-<section id="acknowledgements" class="level2">
-<h2 class="anchored" data-anchor-id="acknowledgements">Acknowledgements</h2>
-<p>Thank you to Simon Horman for the review, and to Jakub Kicinski for explaining why this belonged in <code>net-next</code>, which taught me more than a quick “applied” would have. Thank you to Takashi Iwai for applying the ALSA fix so quickly.</p>
+<section id="vmxnet3-a-dma-mapping-of-memory-that-cant-be-mapped" class="level2">
+<h2 class="anchored" data-anchor-id="vmxnet3-a-dma-mapping-of-memory-that-cant-be-mapped">vmxnet3: a DMA mapping of memory that can’t be mapped</h2>
+<p><em>net-next, applied by Jakub Kicinski on 12 November 2026. Reviewed by Simon Horman.</em></p>
+<p><strong>Bug.</strong> syzbot reported <code>rejecting DMA map of vmalloc memory</code> from <code>vmxnet3</code>, the driver for VMware’s paravirtual NIC. Probe maps the whole <code>struct vmxnet3_adapter</code> with <code>dma_map_single()</code>, but the adapter lives in the <code>net_device</code> private area, which <code>kvzalloc()</code> falls back to <code>vmalloc()</code> for under memory pressure. Then the mapping fails, probe fails, and the VM has no network.</p>
+<p><strong>Fix.</strong> The mapped address is only handed to the device as optional “driver data”, which the per-queue descriptors in the same driver already leave empty, and which DPDK’s vmxnet3 driver never sets. So the patch drops the mapping and reports no driver data (3 lines added, 17 removed):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode diff code-with-copy"><code class="sourceCode diff"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="st">-   devRead-&gt;misc.ddPA = cpu_to_le64(adapter-&gt;adapter_pa);</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="st">-   devRead-&gt;misc.ddLen = cpu_to_le32(sizeof(struct vmxnet3_adapter));</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="va">+   devRead-&gt;misc.ddPA = cpu_to_le64(~0ULL);</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="va">+   devRead-&gt;misc.ddLen = cpu_to_le32(0);</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Tested in QEMU (<code>-device vmxnet3</code>) with syzbot’s reproducer and with <code>fail_page_alloc</code> forcing large allocations to fail on rebind: before, the NIC disappeared; after, it binds and pings.</p>
+<p><strong>Review.</strong> Jakub deferred v1: <em>“this does not seem like a real fix. If nobody complained about this failure mode for 13 years chances are we break more than we fix here.”</em> He asked for <code>net-next</code> instead of <code>net</code>, no <code>Fixes:</code> tag, and no argument about the mapping never being synced, which doesn’t apply to a virtual device. v2 had the same code, went out the day after <code>net-next</code> reopened, and was applied two days later.</p>
+<p><strong>Lesson.</strong> A fuzzer report isn’t automatically a stable fix, and one weak argument in a commit message is the one the reviewer replies to.</p>
+</section>
+<section id="alsa-my-laptop-was-matched-as-a-legion" class="level2">
+<h2 class="anchored" data-anchor-id="alsa-my-laptop-was-matched-as-a-legion">ALSA: my laptop was matched as a Legion</h2>
+<p><em>sound <code>for-linus</code>, applied by Takashi Iwai on 17 November 2026.</em></p>
+<p><strong>Bug.</strong> On my Lenovo V14 G2 ITL, <code>dmesg</code> said <code>ALC257: picked fixup  for codec SSID 17aa:38b7</code>. The controller’s PCI subsystem ID (<code>17aa:380e</code>) matches nothing in the quirk table, so the driver falls back to the codec’s ID (<code>17aa:38b7</code>) and finds the entry for a Legion Slim 7 whose <em>PCI</em> ID is <code>17aa:38b7</code>. That sets up two CS35L41 amplifiers this laptop doesn’t have.</p>
+<p><strong>Fix.</strong> A codec-ID-only entry, placed right after the Legion’s:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>    SND_PCI_QUIRK<span class="op">(</span><span class="bn">0x17aa</span><span class="op">,</span> <span class="bn">0x38b7</span><span class="op">,</span> <span class="st">"Legion Slim 7 16APH8"</span><span class="op">,</span> ALC287_FIXUP_CS35L41_I2C_2<span class="op">),</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">/* Lenovo V14 G2 ITL has PCI SSID 17aa:380e and codec SSID 17aa:38b7, which</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">     * falls back to the Legion Slim 7 16APH8 entry above; this must come after it</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">     */</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    HDA_CODEC_QUIRK<span class="op">(</span><span class="bn">0x17aa</span><span class="op">,</span> <span class="bn">0x38b7</span><span class="op">,</span> <span class="st">"Lenovo V14 G2 ITL"</span><span class="op">,</span> ALC269_FIXUP_LENOVO_XPAD_ACPI<span class="op">),</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The lookup stops at the first match, so the order matters: placed after it, a real Legion still matches on its PCI ID first. The fixup is the one the generic Lenovo fallback would have given this machine. I tested it on the laptop by forcing the same fixup (<code>lenovo-xpad-led</code>) from the command line: speakers, headphones and both microphones worked as before.</p>
+<p><strong>Review.</strong> <em>“Applied now. Thanks.”</em>, the same day, with no changes.</p>
+<p><strong>Lesson.</strong> My own <code>dmesg</code> is a good place to look for bugs, and having the hardware made the patch easy to test and to accept.</p>
 <p><em>Cover: Tux, by Larry Ewing, created with The GIMP.</em></p>
 
 
