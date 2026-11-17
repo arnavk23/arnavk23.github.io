@@ -364,6 +364,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#testing-it-without-vmware" id="toc-testing-it-without-vmware" class="nav-link" data-scroll-target="#testing-it-without-vmware">Testing it without VMware</a></li>
   <li><a href="#review-this-does-not-seem-like-a-real-fix" id="toc-review-this-does-not-seem-like-a-real-fix" class="nav-link" data-scroll-target="#review-this-does-not-seem-like-a-real-fix">Review: “this does not seem like a real fix”</a></li>
   </ul></li>
+  <li><a href="#alsa-my-laptop-was-matched-as-a-legion" id="toc-alsa-my-laptop-was-matched-as-a-legion" class="nav-link" data-scroll-target="#alsa-my-laptop-was-matched-as-a-legion">ALSA: my laptop was matched as a Legion</a>
+  <ul class="collapse">
+  <li><a href="#how-the-lookup-goes-wrong" id="toc-how-the-lookup-goes-wrong" class="nav-link" data-scroll-target="#how-the-lookup-goes-wrong">How the lookup goes wrong</a></li>
+  <li><a href="#the-fix-and-why-its-position-matters" id="toc-the-fix-and-why-its-position-matters" class="nav-link" data-scroll-target="#the-fix-and-why-its-position-matters">The fix, and why its position matters</a></li>
+  <li><a href="#testing-on-the-real-machine" id="toc-testing-on-the-real-machine" class="nav-link" data-scroll-target="#testing-on-the-real-machine">Testing on the real machine</a></li>
+  <li><a href="#review-applied-now.-thanks." id="toc-review-applied-now.-thanks." class="nav-link" data-scroll-target="#review-applied-now.-thanks.">Review: “Applied now. Thanks.”</a></li>
+  </ul></li>
   <li><a href="#what-these-reviews-taught-me" id="toc-what-these-reviews-taught-me" class="nav-link" data-scroll-target="#what-these-reviews-taught-me">What these reviews taught me</a></li>
   <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">Results</a></li>
   <li><a href="#acknowledgements" id="toc-acknowledgements" class="nav-link" data-scroll-target="#acknowledgements">Acknowledgements</a></li>
@@ -380,6 +387,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <div class="quarto-categories">
     <div class="quarto-category">linux-kernel</div>
     <div class="quarto-category">networking</div>
+    <div class="quarto-category">audio</div>
     <div class="quarto-category">open-source</div>
   </div>
   </div>
@@ -417,7 +425,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <p>My <a href="https://wiki.linuxfoundation.org/lkmp">LFX Linux Kernel Bug Fixing Mentorship</a> with Shuah Khan has ended. My <a href="../../posts/2026-10-26-sx93xx-fixes/index.html">main write-up</a> and my final report are with Shuah, so I am leaving that post as it is, at fifteen applied patches. I am still sending patches, though, and some of them were already on the mailing list when the mentorship ended. This post picks up from there. Each time a patch is applied, I will add a section about it, a row in the <a href="#results">results table</a> and a bar in the timeline.</p>
 <p>The first one is in a network driver rather than IIO. It also taught me something that none of my IIO patches did: a correct fix can still be the wrong kind of fix for the tree you send it to.</p>
-<p><em>First published on 13 November 2026 with the <code>vmxnet3</code> fix.</em></p>
+<p><em>First published on 13 November 2026 with the <code>vmxnet3</code> fix. Updated on 17 November 2026 with an ALSA fix for my own laptop.</em></p>
 <div class="cell" data-layout-align="default">
 <div class="cell-output-display">
 <div id="fig-timeline" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -433,6 +441,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     waiting for net-next to reopen            :done, 2026-10-27 05:17, 2026-11-10 21:10
     v2                                        :active, 2026-11-10 21:10, 2026-11-13 00:00
     applied                                   :milestone, 2026-11-13 00:00, 0d
+    section ALSA quirk
+    v1                                        :active, 2026-11-17 01:25, 2026-11-17 14:27
+    applied                                   :milestone, 2026-11-17 14:27, 0d
 </pre>
 </div>
 </div>
@@ -560,12 +571,92 @@ Table&nbsp;1: How I tested the vmxnet3 fix in QEMU.
 <p>v2 had the same code. It targets <code>net-next</code>, has no <code>Fixes:</code> tag, drops the sync argument and carries Simon’s <code>Reviewed-by:</code>. I sent it the day after <code>net-next</code> reopened, and Jakub applied it two days later.</p>
 </section>
 </section>
+<section id="alsa-my-laptop-was-matched-as-a-legion" class="level2">
+<h2 class="anchored" data-anchor-id="alsa-my-laptop-was-matched-as-a-legion">ALSA: my laptop was matched as a Legion</h2>
+<p>The second patch came from my own laptop, a Lenovo V14 G2 ITL. While I was looking at why its speakers sound thin, I noticed this line in <code>dmesg</code>:</p>
+<pre><code>ALC257: picked fixup  for codec SSID 17aa:38b7</code></pre>
+<p>A “fixup” in the HD-audio driver is a machine-specific tweak: pin configurations, amplifier setup, LED handling and so on. The driver picks one by looking up the machine’s IDs in a long table of quirks. There are two IDs to look at: the PCI subsystem ID of the audio controller, and the subsystem ID the audio codec itself reports. On most machines they are the same. On mine they are not:</p>
+<div id="tbl-alsa-ids" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-alsa-ids-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;2: The two IDs the driver can match on, for the V14 G2 ITL.
+</figcaption>
+<div aria-describedby="tbl-alsa-ids-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>ID</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>PCI subsystem ID (controller)</td>
+<td><code>17aa:380e</code></td>
+</tr>
+<tr class="even">
+<td>Codec subsystem ID (ALC257)</td>
+<td><code>17aa:38b7</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<section id="how-the-lookup-goes-wrong" class="level3">
+<h3 class="anchored" data-anchor-id="how-the-lookup-goes-wrong">How the lookup goes wrong</h3>
+<p><code>snd_hda_pick_fixup()</code> tries the PCI ID first. Nothing in the table matches <code>17aa:380e</code>, so it falls back to the codec ID, <code>17aa:38b7</code>, and finds this entry:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>    SND_PCI_QUIRK<span class="op">(</span><span class="bn">0x17aa</span><span class="op">,</span> <span class="bn">0x38b7</span><span class="op">,</span> <span class="st">"Legion Slim 7 16APH8"</span><span class="op">,</span> ALC287_FIXUP_CS35L41_I2C_2<span class="op">),</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>That entry was written for a Lenovo Legion Slim 7 whose <em>PCI</em> ID is <code>17aa:38b7</code>. The codec-ID fallback doesn’t know that, so my laptop got the Legion’s fixup, which sets up two Cirrus Logic CS35L41 smart amplifiers. The V14 G2 ITL has no CS35L41 at all. Its speakers are driven directly by the ALC257 codec, through a single pin.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-alsa" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-alsa-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-alsa">flowchart TD
+    A["snd_hda_pick_fixup()"] --&gt; B{"PCI ID 17aa:380e&lt;br/&gt;in the table?"}
+    B -- "no" --&gt; C{"codec ID 17aa:38b7"}
+    C -- "before" --&gt; D["Legion Slim 7 entry:&lt;br/&gt;CS35L41 amplifier fixup"]
+    C -- "after" --&gt; E["V14 G2 ITL entry:&lt;br/&gt;ALC269_FIXUP_LENOVO_XPAD_ACPI"]
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-alsa-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: How the fixup is picked on the V14 G2 ITL, before and after the patch.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="the-fix-and-why-its-position-matters" class="level3">
+<h3 class="anchored" data-anchor-id="the-fix-and-why-its-position-matters">The fix, and why its position matters</h3>
+<p>The table has a macro for exactly this case, <code>HDA_CODEC_QUIRK()</code>, an entry that only matches on the codec ID. The patch adds one:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>    SND_PCI_QUIRK<span class="op">(</span><span class="bn">0x17aa</span><span class="op">,</span> <span class="bn">0x38b7</span><span class="op">,</span> <span class="st">"Legion Slim 7 16APH8"</span><span class="op">,</span> ALC287_FIXUP_CS35L41_I2C_2<span class="op">),</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">/* Lenovo V14 G2 ITL has PCI SSID 17aa:380e and codec SSID 17aa:38b7, which</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co">     * falls back to the Legion Slim 7 16APH8 entry above; this must come after it</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co">     */</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    HDA_CODEC_QUIRK<span class="op">(</span><span class="bn">0x17aa</span><span class="op">,</span> <span class="bn">0x38b7</span><span class="op">,</span> <span class="st">"Lenovo V14 G2 ITL"</span><span class="op">,</span> ALC269_FIXUP_LENOVO_XPAD_ACPI<span class="op">),</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The interesting part is where it goes. The lookup walks the table once, in order, and stops at the first match. Codec-only entries are checked against the codec ID during that same walk. If my entry came <em>before</em> the Legion’s, a real Legion Slim 7, whose codec probably reports <code>17aa:38b7</code> too, would match my entry first and lose its amplifier setup. Placed <em>after</em> it, the Legion still matches on its PCI ID first, and my laptop, whose PCI ID matches nothing, carries on down the table to the new entry. The comment is there so the next person who sorts that table doesn’t move it.</p>
+<p>For the fixup itself I picked <code>ALC269_FIXUP_LENOVO_XPAD_ACPI</code>, because that is what the driver’s generic Lenovo fallback would give this machine if the Legion entry weren’t in the way. In other words, the patch gives the V14 G2 ITL the fixup it would have had all along.</p>
+</section>
+<section id="testing-on-the-real-machine" class="level3">
+<h3 class="anchored" data-anchor-id="testing-on-the-real-machine">Testing on the real machine</h3>
+<p>This time I had the hardware, so I could test the result rather than only build it. The driver lets you force a fixup by name from the kernel command line, and <code>lenovo-xpad-led</code> is the model name for the same fixup. After booting with it, <code>dmesg</code> said <code>picked fixup lenovo-xpad-led (model specified)</code>, and the speakers, headphones, headset microphone and internal microphone all worked as before.</p>
+<p>The thin speaker sound I started out with turned out to be a separate problem. The codec has a single speaker output, and Windows makes it sound better with signal processing that Linux doesn’t do. That is a job for an equaliser in PipeWire, not a kernel patch.</p>
+</section>
+<section id="review-applied-now.-thanks." class="level3">
+<h3 class="anchored" data-anchor-id="review-applied-now.-thanks.">Review: “Applied now. Thanks.”</h3>
+<p>I sent the patch to Takashi Iwai, the sound maintainer, at 01:25 IST, and he applied it the same afternoon, with no changes, to the <code>for-linus</code> branch of the sound tree. That branch carries fixes to Linus during the current release cycle, so this one should reach a release candidate soon rather than waiting for the next merge window.</p>
+</section>
+</section>
 <section id="what-these-reviews-taught-me" class="level2">
 <h2 class="anchored" data-anchor-id="what-these-reviews-taught-me">What these reviews taught me</h2>
 <div id="tbl-review" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-review-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;2: The review comments on each patch, and how each was addressed.
+Table&nbsp;3: The review comments on each patch, and how each was addressed.
 </figcaption>
 <div aria-describedby="tbl-review-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -597,6 +688,11 @@ Table&nbsp;2: The review comments on each patch, and how each was addressed.
 <td>Remove the “never synced” argument</td>
 <td>Removed; the other reasons stand on their own</td>
 </tr>
+<tr class="even">
+<td>ALSA quirk</td>
+<td>None, applied as sent</td>
+<td>Nothing</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -606,6 +702,8 @@ Table&nbsp;2: The review comments on each patch, and how each was addressed.
 <li><strong>A bug report is not automatically a fix for stable.</strong> Whether something goes to <code>net</code> or <code>net-next</code> depends on who is actually hurt and how risky the change is, not on whether a fuzzer found it. Before adding a <code>Fixes:</code> tag, I now ask whether a stable maintainer would want this backported to a kernel running in production.</li>
 <li><strong>Every argument in a commit message has to hold.</strong> One weak reason in a list of good ones is what the reviewer will reply to. If a reason only holds on real hardware, it doesn’t belong in a commit message for a paravirtual driver.</li>
 <li><strong>Deferred is not rejected.</strong> <code>pw-bot: defer</code> with “repost in a couple of weeks” is an instruction, not a no. I resent the patch the day after the tree reopened.</li>
+<li><strong>Your own machine is a good place to look for bugs.</strong> The ALSA bug was in my <code>dmesg</code> the whole time. Having the hardware also meant I could test the change properly, which made the patch much easier to accept.</li>
+<li><strong>In a first-match table, order is part of the fix.</strong> The new entry is only correct because of where it sits, so I put that in a comment, not just in the commit message.</li>
 </ul>
 </section>
 <section id="results" class="level2">
@@ -613,7 +711,7 @@ Table&nbsp;2: The review comments on each patch, and how each was addressed.
 <div id="tbl-results" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-results-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;3: Patches applied since the mentorship.
+Table&nbsp;4: Patches applied since the mentorship.
 </figcaption>
 <div aria-describedby="tbl-results-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -632,16 +730,22 @@ Table&nbsp;3: Patches applied since the mentorship.
 <td>Simon Horman</td>
 <td><a href="https://lore.kernel.org/all/20261021221221.502428-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261110154048.143227-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/commit/?id=42abea827cf2876e5e678db632d0965780e57706">commit</a></td>
 </tr>
+<tr class="even">
+<td>ALSA: hda/realtek: Don’t apply the Legion Slim 7 quirk to Lenovo V14 G2 ITL</td>
+<td>sound (<code>for-linus</code>)</td>
+<td>Applied by Takashi Iwai</td>
+<td><a href="https://lore.kernel.org/all/20261116195503.11530-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound.git/commit/?h=for-linus&amp;id=a7c800982bd0cc704a92c3b616e8bb049f2e68fa">commit</a></td>
+</tr>
 </tbody>
 </table>
 </div>
 </figure>
 </div>
-<p>That brings my total to sixteen applied patches. Several more are on the list as I write this, including more SX9xxx fixes, and I will add them here as they are applied.</p>
+<p>That brings my total to seventeen applied patches. Several more are on the list as I write this, including more SX9xxx fixes, and I will add them here as they are applied.</p>
 </section>
 <section id="acknowledgements" class="level2">
 <h2 class="anchored" data-anchor-id="acknowledgements">Acknowledgements</h2>
-<p>Thank you to Simon Horman for the review, and to Jakub Kicinski for explaining why this belonged in <code>net-next</code>, which taught me more than a quick “applied” would have.</p>
+<p>Thank you to Simon Horman for the review, and to Jakub Kicinski for explaining why this belonged in <code>net-next</code>, which taught me more than a quick “applied” would have. Thank you to Takashi Iwai for applying the ALSA fix so quickly.</p>
 <p><em>Cover: Tux, by Larry Ewing, created with The GIMP.</em></p>
 
 

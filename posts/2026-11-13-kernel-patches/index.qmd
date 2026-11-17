@@ -3,7 +3,7 @@ title: "After the Mentorship: More Kernel Patches"
 description: "A running log of my Linux kernel patches applied after the LFX mentorship, starting with a vmxnet3 fix found by syzbot. For each one: the bug, the review that shaped it, and where it landed. I add each patch here as it is applied."
 date: 2026-11-13
 draft: false
-categories: [linux-kernel, networking, open-source]
+categories: [linux-kernel, networking, audio, open-source]
 image: cover.png
 toc: true
 toc-location: right
@@ -21,7 +21,8 @@ The first one is in a network driver rather than IIO. It also taught me somethin
 none of my IIO patches did: a correct fix can still be the wrong kind of fix for the
 tree you send it to.
 
-*First published on 13 November 2026 with the `vmxnet3` fix.*
+*First published on 13 November 2026 with the `vmxnet3` fix. Updated on 17 November
+2026 with an ALSA fix for my own laptop.*
 
 ```{mermaid}
 %%| label: fig-timeline
@@ -35,6 +36,9 @@ gantt
     waiting for net-next to reopen            :done, 2026-10-27 05:17, 2026-11-10 21:10
     v2                                        :active, 2026-11-10 21:10, 2026-11-13 00:00
     applied                                   :milestone, 2026-11-13 00:00, 0d
+    section ALSA quirk
+    v1                                        :active, 2026-11-17 01:25, 2026-11-17 14:27
+    applied                                   :milestone, 2026-11-17 14:27, 0d
 ```
 
 ## vmxnet3: a DMA mapping of memory that can't be mapped
@@ -181,6 +185,98 @@ v2 had the same code. It targets `net-next`, has no `Fixes:` tag, drops the sync
 argument and carries Simon's `Reviewed-by:`. I sent it the day after `net-next`
 reopened, and Jakub applied it two days later.
 
+## ALSA: my laptop was matched as a Legion
+
+The second patch came from my own laptop, a Lenovo V14 G2 ITL. While I was looking at
+why its speakers sound thin, I noticed this line in `dmesg`:
+
+```
+ALC257: picked fixup  for codec SSID 17aa:38b7
+```
+
+A "fixup" in the HD-audio driver is a machine-specific tweak: pin configurations,
+amplifier setup, LED handling and so on. The driver picks one by looking up the
+machine's IDs in a long table of quirks. There are two IDs to look at: the PCI
+subsystem ID of the audio controller, and the subsystem ID the audio codec itself
+reports. On most machines they are the same. On mine they are not:
+
+| ID | Value |
+|---|---|
+| PCI subsystem ID (controller) | `17aa:380e` |
+| Codec subsystem ID (ALC257) | `17aa:38b7` |
+
+: The two IDs the driver can match on, for the V14 G2 ITL. {#tbl-alsa-ids}
+
+### How the lookup goes wrong
+
+`snd_hda_pick_fixup()` tries the PCI ID first. Nothing in the table matches
+`17aa:380e`, so it falls back to the codec ID, `17aa:38b7`, and finds this entry:
+
+```c
+	SND_PCI_QUIRK(0x17aa, 0x38b7, "Legion Slim 7 16APH8", ALC287_FIXUP_CS35L41_I2C_2),
+```
+
+That entry was written for a Lenovo Legion Slim 7 whose *PCI* ID is `17aa:38b7`. The
+codec-ID fallback doesn't know that, so my laptop got the Legion's fixup, which sets
+up two Cirrus Logic CS35L41 smart amplifiers. The V14 G2 ITL has no CS35L41 at all.
+Its speakers are driven directly by the ALC257 codec, through a single pin.
+
+```{mermaid}
+%%| label: fig-alsa
+%%| fig-cap: "How the fixup is picked on the V14 G2 ITL, before and after the patch."
+flowchart TD
+    A["snd_hda_pick_fixup()"] --> B{"PCI ID 17aa:380e<br/>in the table?"}
+    B -- "no" --> C{"codec ID 17aa:38b7"}
+    C -- "before" --> D["Legion Slim 7 entry:<br/>CS35L41 amplifier fixup"]
+    C -- "after" --> E["V14 G2 ITL entry:<br/>ALC269_FIXUP_LENOVO_XPAD_ACPI"]
+```
+
+### The fix, and why its position matters
+
+The table has a macro for exactly this case, `HDA_CODEC_QUIRK()`, an entry that only
+matches on the codec ID. The patch adds one:
+
+```c
+	SND_PCI_QUIRK(0x17aa, 0x38b7, "Legion Slim 7 16APH8", ALC287_FIXUP_CS35L41_I2C_2),
+	/* Lenovo V14 G2 ITL has PCI SSID 17aa:380e and codec SSID 17aa:38b7, which
+	 * falls back to the Legion Slim 7 16APH8 entry above; this must come after it
+	 */
+	HDA_CODEC_QUIRK(0x17aa, 0x38b7, "Lenovo V14 G2 ITL", ALC269_FIXUP_LENOVO_XPAD_ACPI),
+```
+
+The interesting part is where it goes. The lookup walks the table once, in order,
+and stops at the first match. Codec-only entries are checked against the codec ID
+during that same walk. If my entry came *before* the Legion's, a real Legion Slim 7,
+whose codec probably reports `17aa:38b7` too, would match my entry first and lose
+its amplifier setup. Placed *after* it, the Legion still matches on its PCI ID first,
+and my laptop, whose PCI ID matches nothing, carries on down the table to the new
+entry. The comment is there so the next person who sorts that table doesn't move it.
+
+For the fixup itself I picked `ALC269_FIXUP_LENOVO_XPAD_ACPI`, because that is what
+the driver's generic Lenovo fallback would give this machine if the Legion entry
+weren't in the way. In other words, the patch gives the V14 G2 ITL the fixup it would
+have had all along.
+
+### Testing on the real machine
+
+This time I had the hardware, so I could test the result rather than only build it.
+The driver lets you force a fixup by name from the kernel command line, and
+`lenovo-xpad-led` is the model name for the same fixup. After booting with it,
+`dmesg` said `picked fixup lenovo-xpad-led (model specified)`, and the speakers,
+headphones, headset microphone and internal microphone all worked as before.
+
+The thin speaker sound I started out with turned out to be a separate problem. The
+codec has a single speaker output, and Windows makes it sound better with signal
+processing that Linux doesn't do. That is a job for an equaliser in PipeWire, not a
+kernel patch.
+
+### Review: "Applied now. Thanks."
+
+I sent the patch to Takashi Iwai, the sound maintainer, at 01:25 IST, and he applied
+it the same afternoon, with no changes, to the `for-linus` branch of the sound tree.
+That branch carries fixes to Linus during the current release cycle, so this one
+should reach a release candidate soon rather than waiting for the next merge window.
+
 ## What these reviews taught me
 
 | Patch | Review comment | What I changed |
@@ -188,6 +284,7 @@ reopened, and Jakub applied it two days later.
 | vmxnet3 | "Does not seem like a real fix", send to `net-next` | Retargeted to `net-next` and waited for it to reopen |
 | vmxnet3 | Drop the `Fixes:` tag | Dropped; kept `Reported-by:` and `Closes:` for syzbot |
 | vmxnet3 | Remove the "never synced" argument | Removed; the other reasons stand on their own |
+| ALSA quirk | None, applied as sent | Nothing |
 
 : The review comments on each patch, and how each was addressed. {#tbl-review}
 
@@ -201,21 +298,29 @@ reopened, and Jakub applied it two days later.
 - **Deferred is not rejected.** `pw-bot: defer` with "repost in a couple of weeks" is
   an instruction, not a no. I resent the patch the day after the tree
   reopened.
+- **Your own machine is a good place to look for bugs.** The ALSA bug was in my
+  `dmesg` the whole time. Having the hardware also meant I could test the change
+  properly, which made the patch much easier to accept.
+- **In a first-match table, order is part of the fix.** The new entry is only correct
+  because of where it sits, so I put that in a comment, not just in the commit
+  message.
 
 ## Results
 
 | Patch | Tree | Reviewed by | Links |
 |---|---|---|---|
 | vmxnet3: stop DMA mapping the adapter structure | net-next | Simon Horman | [v1](https://lore.kernel.org/all/20261021221221.502428-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261110154048.143227-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/commit/?id=42abea827cf2876e5e678db632d0965780e57706) |
+| ALSA: hda/realtek: Don't apply the Legion Slim 7 quirk to Lenovo V14 G2 ITL | sound (`for-linus`) | Applied by Takashi Iwai | [v1](https://lore.kernel.org/all/20261116195503.11530-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound.git/commit/?h=for-linus&id=a7c800982bd0cc704a92c3b616e8bb049f2e68fa) |
 
 : Patches applied since the mentorship. {#tbl-results}
 
-That brings my total to sixteen applied patches. Several more are on the list as I
+That brings my total to seventeen applied patches. Several more are on the list as I
 write this, including more SX9xxx fixes, and I will add them here as they are applied.
 
 ## Acknowledgements
 
 Thank you to Simon Horman for the review, and to Jakub Kicinski for explaining why
 this belonged in `net-next`, which taught me more than a quick "applied" would have.
+Thank you to Takashi Iwai for applying the ALSA fix so quickly.
 
 *Cover: Tux, by Larry Ewing, created with The GIMP.*
