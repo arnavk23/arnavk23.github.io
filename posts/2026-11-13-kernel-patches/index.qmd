@@ -3,7 +3,7 @@ title: "After the Mentorship: More Kernel Patches"
 description: "A running log of my Linux kernel patches applied after the LFX mentorship. For each one: the bug, the fix, the review, and where it landed."
 date: 2026-11-13
 draft: false
-categories: [linux-kernel, networking, audio, open-source]
+categories: [linux-kernel, iio, networking, audio, open-source]
 image: cover.png
 toc: true
 toc-location: right
@@ -20,6 +20,12 @@ merged from here on: a short entry for each one, and a row in the
 | Patch | Tree | Links |
 |---|---|---|
 | vmxnet3: stop DMA mapping the adapter structure | net-next | [v1](https://lore.kernel.org/all/20261021221221.502428-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261110154048.143227-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/commit/?id=42abea827cf2876e5e678db632d0965780e57706) |
+| dt-bindings: iio: adc: xlnx,zynqmp-ams: limit external channels to 30-50 | iio (`testing`) | [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&id=9c1cd6db6732aa8d1837a9e081f5c1f2e3ff10ce) |
+| iio: adc: xilinx-ams: fix out-of-bounds accesses when parsing channels | iio (`testing`) | [v1](https://lore.kernel.org/all/20261021225356.625288-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261023185652.195025-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&id=1f655751d7bee1406186c9968e81fbc104a7f076) |
+| iio: proximity: sx9310: reject out-of-range hardware gain values | iio (`testing`) | [v1](https://lore.kernel.org/all/20261107111710.442318-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261109165200.305266-1-kapoorarnav43@gmail.com/) · [v3](https://lore.kernel.org/all/20261111164041.341776-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&id=b33afe82260666aa3db53a954ed9acab73fcfb6f) |
+| iio: proximity: sx9360: reject out-of-range hardware gain values | iio (`testing`) | [v1](https://lore.kernel.org/all/20261107111710.442318-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261109165200.305266-1-kapoorarnav43@gmail.com/) · [v3](https://lore.kernel.org/all/20261111164041.341776-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&id=32122526491e3aab20476e1a30a6d45fe4dff443) |
+| iio: proximity: sx9324: reject reserved gain values on read | iio (`testing`) | [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&id=28711bd660bd176edec37d39e890e4a2c57835e6) |
+| iio: proximity: sx9310: fix semtech,proxraw-strength = <0> | iio (`testing`) | [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&id=56afa57ac23c97b5c311c83f9da86bb907e7c8a1) |
 | ALSA: hda/realtek: Don't apply the Legion Slim 7 quirk to Lenovo V14 G2 ITL | sound (`for-linus`) | [v1](https://lore.kernel.org/all/20261116195503.11530-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound.git/commit/?h=for-linus&id=a7c800982bd0cc704a92c3b616e8bb049f2e68fa) |
 
 : Patches applied since the mentorship. {#tbl-results}
@@ -59,6 +65,133 @@ later.
 
 **Lesson.** A fuzzer report isn't automatically a stable fix, and one weak argument in
 a commit message is the one the reviewer replies to.
+
+## xilinx-ams: more channels than the buffer has room for
+
+*iio `testing`, applied by Jonathan Cameron on 14 November 2026. Reviewed by Sai
+Krishna Potthuri, binding acked by Krzysztof Kozlowski.*
+
+**Bug.** `ams_parse_firmware()` allocates room for 51 channel specs and fills them from
+the device tree without tracking how much room is left. The PL node always adds its 10
+fixed channels, numbered 20 to 29, and then one more for each `channel@N` child. Any N
+from 20 to 50 was accepted, so a child numbered 20 to 29 duplicated a fixed channel and
+the PL node could reach 41 channels with only 31 budgeted, writing past the end of the
+buffer. A `reg` below 20 also made the unsigned index wrap, reading far outside
+`ams_pl_channels[]`.
+
+**Fix.** Accept only the external channels 30 to 50, in both the driver and the
+binding, and pass the remaining capacity down so a module that doesn't fit fails with
+`-ENOSPC`:
+
+```c
+	if (reg < AMS_PL_EXT_CHANNEL_MIN ||
+	    reg > AMS_PL_EXT_CHANNEL_MAX)
+		continue;
+
+	if (num_channels >= max_channels)
+		return -ENOSPC;
+```
+
+Compile-tested only, as I don't have ZynqMP hardware. `dt_binding_check` passes and
+rejects a `channel@25` node.
+
+**Review.** Sai pointed out that channels 20 to 29 are the fixed ones, so the binding
+itself was too permissive. v3 became a two-patch series, with the binding limited to
+30-50 first.
+
+**Lesson.** The bounds check stops the overflow, but the hardware's owner knew why the
+bad input existed at all.
+
+## sx9310 and sx9360: gains that wrapped around
+
+*iio `testing`, applied by Jonathan Cameron on 14 November 2026. Reviewed by Andy
+Shevchenko.*
+
+**Bug.** Both `write_gain()` functions put `ilog2(val)` into a small register field
+without checking it, and still reported success. On sx9310, a gain of 16 wrapped around
+to 1. On both drivers, 0 and negative values selected the highest code in the field,
+because `ilog2(0)` is -1.
+
+**Fix.** Return `-ERANGE` for values that can't be represented. For sx9310 that is
+whatever doesn't fit the 2-bit field:
+
+```c
+	if (val <= 0)
+		return -ERANGE;
+
+	gain = ilog2(val);
+	...
+	if (!FIELD_FIT(SX9310_REG_PROX_CTRL3_GAIN0_MASK, gain))
+		return -ERANGE;
+```
+
+`FIELD_FIT()` isn't enough for sx9360, whose 3-bit field also holds codes 4 to 7 that
+the driver doesn't support, so it compares against the code for a gain of 8.
+Compile-tested only.
+
+**Review.** v1 rejected every unsupported value. Jonathan asked me to keep rounding
+values between the supported gains down, so the ABI doesn't change, and Andy asked for
+`-ERANGE` instead of `-EINVAL`. On v3, Andy wrote: *"Now it looks better."*
+
+**Lesson.** Rejecting bad input can still break userspace, so reject only what was
+never meaningful.
+
+## sx9324: a range check that could never fire
+
+*iio `testing`, applied by Jonathan Cameron on 15 November 2026. Reviewed by Joshua
+Crofts.*
+
+**Bug.** `sx9324_read_gain()` is meant to return `-EINVAL` for the reserved gain codes
+0 and 5 to 7, but the check sat in the `else` of `if (regval)`, where `regval` is
+always 0. Codes 5 to 7 were reported as gains of 16, 32 and 64, which the sensor doesn't
+support and `write_raw()` rejects.
+
+**Fix.** Check both reserved ranges before converting the code to a gain (3 lines
+added, 5 removed):
+
+```diff
+-	if (regval)
+-		regval--;
+-	else if (regval == SX9324_REG_PROX_CTRL0_GAIN_RSVD ||
+-		 regval > SX9324_REG_PROX_CTRL0_GAIN_8)
++	if (regval == SX9324_REG_PROX_CTRL0_GAIN_RSVD ||
++	    regval > SX9324_REG_PROX_CTRL0_GAIN_8)
+ 		return -EINVAL;
+
+-	*val = 1 << regval;
++	*val = 1 << (regval - 1);
+```
+
+Compile-tested only, as I don't have SX9324 hardware.
+
+**Lesson.** A condition in an `else` branch inherits the opposite of the `if`, so read
+it with that in mind.
+
+## sx9310: "off" selected the strongest filter
+
+*iio `testing`, applied by Jonathan Cameron on 15 November 2026.*
+
+**Bug.** The binding allows `semtech,proxraw-strength` values of 0, 2, 4 and 8, where 0
+turns the filter off. The driver converts the property with `ilog2()`, which returns -1
+for 0, and `FIELD_PREP()` masks that to 3 in the 2-bit field. A board asking for no
+filter got the same setting as `<8>`, the strongest one.
+
+**Fix.** Keep 0 as register code 0:
+
+```diff
+-		} else {
++		} else if (raw) {
++			/* 0 means off; 2, 4 and 8 are codes 1 to 3. */
+ 			raw = ilog2(raw);
+ 		}
+```
+
+No in-tree device tree uses `<0>`, so this only affects out-of-tree boards. I checked
+the mapping with a userspace copy of the conversion: before the patch 0 and 8 both give
+code 3, and after it 0 gives 0.
+
+**Lesson.** `ilog2(0)` was behind the gain bugs above too, so once a bad pattern turns
+up in a driver family it's worth searching for the rest.
 
 ## ALSA: my laptop was matched as a Legion
 

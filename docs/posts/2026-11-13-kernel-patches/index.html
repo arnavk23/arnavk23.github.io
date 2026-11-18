@@ -356,6 +356,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#results" id="toc-results" class="nav-link active" data-scroll-target="#results">Results</a></li>
   <li><a href="#vmxnet3-a-dma-mapping-of-memory-that-cant-be-mapped" id="toc-vmxnet3-a-dma-mapping-of-memory-that-cant-be-mapped" class="nav-link" data-scroll-target="#vmxnet3-a-dma-mapping-of-memory-that-cant-be-mapped">vmxnet3: a DMA mapping of memory that can’t be mapped</a></li>
+  <li><a href="#xilinx-ams-more-channels-than-the-buffer-has-room-for" id="toc-xilinx-ams-more-channels-than-the-buffer-has-room-for" class="nav-link" data-scroll-target="#xilinx-ams-more-channels-than-the-buffer-has-room-for">xilinx-ams: more channels than the buffer has room for</a></li>
+  <li><a href="#sx9310-and-sx9360-gains-that-wrapped-around" id="toc-sx9310-and-sx9360-gains-that-wrapped-around" class="nav-link" data-scroll-target="#sx9310-and-sx9360-gains-that-wrapped-around">sx9310 and sx9360: gains that wrapped around</a></li>
+  <li><a href="#sx9324-a-range-check-that-could-never-fire" id="toc-sx9324-a-range-check-that-could-never-fire" class="nav-link" data-scroll-target="#sx9324-a-range-check-that-could-never-fire">sx9324: a range check that could never fire</a></li>
+  <li><a href="#sx9310-off-selected-the-strongest-filter" id="toc-sx9310-off-selected-the-strongest-filter" class="nav-link" data-scroll-target="#sx9310-off-selected-the-strongest-filter">sx9310: “off” selected the strongest filter</a></li>
   <li><a href="#alsa-my-laptop-was-matched-as-a-legion" id="toc-alsa-my-laptop-was-matched-as-a-legion" class="nav-link" data-scroll-target="#alsa-my-laptop-was-matched-as-a-legion">ALSA: my laptop was matched as a Legion</a></li>
   </ul>
 </nav>
@@ -369,6 +373,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h1 class="title">After the Mentorship: More Kernel Patches</h1>
   <div class="quarto-categories">
     <div class="quarto-category">linux-kernel</div>
+    <div class="quarto-category">iio</div>
     <div class="quarto-category">networking</div>
     <div class="quarto-category">audio</div>
     <div class="quarto-category">open-source</div>
@@ -430,6 +435,36 @@ Table&nbsp;1: Patches applied since the mentorship.
 <td><a href="https://lore.kernel.org/all/20261021221221.502428-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261110154048.143227-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/commit/?id=42abea827cf2876e5e678db632d0965780e57706">commit</a></td>
 </tr>
 <tr class="even">
+<td>dt-bindings: iio: adc: xlnx,zynqmp-ams: limit external channels to 30-50</td>
+<td>iio (<code>testing</code>)</td>
+<td><a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&amp;id=9c1cd6db6732aa8d1837a9e081f5c1f2e3ff10ce">commit</a></td>
+</tr>
+<tr class="odd">
+<td>iio: adc: xilinx-ams: fix out-of-bounds accesses when parsing channels</td>
+<td>iio (<code>testing</code>)</td>
+<td><a href="https://lore.kernel.org/all/20261021225356.625288-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261023185652.195025-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&amp;id=1f655751d7bee1406186c9968e81fbc104a7f076">commit</a></td>
+</tr>
+<tr class="even">
+<td>iio: proximity: sx9310: reject out-of-range hardware gain values</td>
+<td>iio (<code>testing</code>)</td>
+<td><a href="https://lore.kernel.org/all/20261107111710.442318-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261109165200.305266-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://lore.kernel.org/all/20261111164041.341776-1-kapoorarnav43@gmail.com/">v3</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&amp;id=b33afe82260666aa3db53a954ed9acab73fcfb6f">commit</a></td>
+</tr>
+<tr class="odd">
+<td>iio: proximity: sx9360: reject out-of-range hardware gain values</td>
+<td>iio (<code>testing</code>)</td>
+<td><a href="https://lore.kernel.org/all/20261107111710.442318-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261109165200.305266-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://lore.kernel.org/all/20261111164041.341776-1-kapoorarnav43@gmail.com/">v3</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&amp;id=32122526491e3aab20476e1a30a6d45fe4dff443">commit</a></td>
+</tr>
+<tr class="even">
+<td>iio: proximity: sx9324: reject reserved gain values on read</td>
+<td>iio (<code>testing</code>)</td>
+<td><a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&amp;id=28711bd660bd176edec37d39e890e4a2c57835e6">commit</a></td>
+</tr>
+<tr class="odd">
+<td>iio: proximity: sx9310: fix semtech,proxraw-strength = &lt;0&gt;</td>
+<td>iio (<code>testing</code>)</td>
+<td><a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&amp;id=56afa57ac23c97b5c311c83f9da86bb907e7c8a1">commit</a></td>
+</tr>
+<tr class="even">
 <td>ALSA: hda/realtek: Don’t apply the Legion Slim 7 quirk to Lenovo V14 G2 ITL</td>
 <td>sound (<code>for-linus</code>)</td>
 <td><a href="https://lore.kernel.org/all/20261116195503.11530-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound.git/commit/?h=for-linus&amp;id=a7c800982bd0cc704a92c3b616e8bb049f2e68fa">commit</a></td>
@@ -453,16 +488,78 @@ Table&nbsp;1: Patches applied since the mentorship.
 <p><strong>Review.</strong> Jakub deferred v1: <em>“this does not seem like a real fix. If nobody complained about this failure mode for 13 years chances are we break more than we fix here.”</em> He asked for <code>net-next</code> instead of <code>net</code>, no <code>Fixes:</code> tag, and no argument about the mapping never being synced, which doesn’t apply to a virtual device. v2 had the same code, went out the day after <code>net-next</code> reopened, and was applied two days later.</p>
 <p><strong>Lesson.</strong> A fuzzer report isn’t automatically a stable fix, and one weak argument in a commit message is the one the reviewer replies to.</p>
 </section>
+<section id="xilinx-ams-more-channels-than-the-buffer-has-room-for" class="level2">
+<h2 class="anchored" data-anchor-id="xilinx-ams-more-channels-than-the-buffer-has-room-for">xilinx-ams: more channels than the buffer has room for</h2>
+<p><em>iio <code>testing</code>, applied by Jonathan Cameron on 14 November 2026. Reviewed by Sai Krishna Potthuri, binding acked by Krzysztof Kozlowski.</em></p>
+<p><strong>Bug.</strong> <code>ams_parse_firmware()</code> allocates room for 51 channel specs and fills them from the device tree without tracking how much room is left. The PL node always adds its 10 fixed channels, numbered 20 to 29, and then one more for each <code>channel@N</code> child. Any N from 20 to 50 was accepted, so a child numbered 20 to 29 duplicated a fixed channel and the PL node could reach 41 channels with only 31 budgeted, writing past the end of the buffer. A <code>reg</code> below 20 also made the unsigned index wrap, reading far outside <code>ams_pl_channels[]</code>.</p>
+<p><strong>Fix.</strong> Accept only the external channels 30 to 50, in both the driver and the binding, and pass the remaining capacity down so a module that doesn’t fit fails with <code>-ENOSPC</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>reg <span class="op">&lt;</span> AMS_PL_EXT_CHANNEL_MIN <span class="op">||</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>        reg <span class="op">&gt;</span> AMS_PL_EXT_CHANNEL_MAX<span class="op">)</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>        <span class="cf">continue</span><span class="op">;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>num_channels <span class="op">&gt;=</span> max_channels<span class="op">)</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>ENOSPC<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Compile-tested only, as I don’t have ZynqMP hardware. <code>dt_binding_check</code> passes and rejects a <code>channel@25</code> node.</p>
+<p><strong>Review.</strong> Sai pointed out that channels 20 to 29 are the fixed ones, so the binding itself was too permissive. v3 became a two-patch series, with the binding limited to 30-50 first.</p>
+<p><strong>Lesson.</strong> The bounds check stops the overflow, but the hardware’s owner knew why the bad input existed at all.</p>
+</section>
+<section id="sx9310-and-sx9360-gains-that-wrapped-around" class="level2">
+<h2 class="anchored" data-anchor-id="sx9310-and-sx9360-gains-that-wrapped-around">sx9310 and sx9360: gains that wrapped around</h2>
+<p><em>iio <code>testing</code>, applied by Jonathan Cameron on 14 November 2026. Reviewed by Andy Shevchenko.</em></p>
+<p><strong>Bug.</strong> Both <code>write_gain()</code> functions put <code>ilog2(val)</code> into a small register field without checking it, and still reported success. On sx9310, a gain of 16 wrapped around to 1. On both drivers, 0 and negative values selected the highest code in the field, because <code>ilog2(0)</code> is -1.</p>
+<p><strong>Fix.</strong> Return <code>-ERANGE</code> for values that can’t be represented. For sx9310 that is whatever doesn’t fit the 2-bit field:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>val <span class="op">&lt;=</span> <span class="dv">0</span><span class="op">)</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>ERANGE<span class="op">;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    gain <span class="op">=</span> ilog2<span class="op">(</span>val<span class="op">);</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="op">...</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(!</span>FIELD_FIT<span class="op">(</span>SX9310_REG_PROX_CTRL3_GAIN0_MASK<span class="op">,</span> gain<span class="op">))</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">-</span>ERANGE<span class="op">;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>FIELD_FIT()</code> isn’t enough for sx9360, whose 3-bit field also holds codes 4 to 7 that the driver doesn’t support, so it compares against the code for a gain of 8. Compile-tested only.</p>
+<p><strong>Review.</strong> v1 rejected every unsupported value. Jonathan asked me to keep rounding values between the supported gains down, so the ABI doesn’t change, and Andy asked for <code>-ERANGE</code> instead of <code>-EINVAL</code>. On v3, Andy wrote: <em>“Now it looks better.”</em></p>
+<p><strong>Lesson.</strong> Rejecting bad input can still break userspace, so reject only what was never meaningful.</p>
+</section>
+<section id="sx9324-a-range-check-that-could-never-fire" class="level2">
+<h2 class="anchored" data-anchor-id="sx9324-a-range-check-that-could-never-fire">sx9324: a range check that could never fire</h2>
+<p><em>iio <code>testing</code>, applied by Jonathan Cameron on 15 November 2026. Reviewed by Joshua Crofts.</em></p>
+<p><strong>Bug.</strong> <code>sx9324_read_gain()</code> is meant to return <code>-EINVAL</code> for the reserved gain codes 0 and 5 to 7, but the check sat in the <code>else</code> of <code>if (regval)</code>, where <code>regval</code> is always 0. Codes 5 to 7 were reported as gains of 16, 32 and 64, which the sensor doesn’t support and <code>write_raw()</code> rejects.</p>
+<p><strong>Fix.</strong> Check both reserved ranges before converting the code to a gain (3 lines added, 5 removed):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode diff code-with-copy"><code class="sourceCode diff"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="st">-   if (regval)</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="st">-       regval--;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="st">-   else if (regval == SX9324_REG_PROX_CTRL0_GAIN_RSVD ||</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="st">-        regval &gt; SX9324_REG_PROX_CTRL0_GAIN_8)</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="va">+   if (regval == SX9324_REG_PROX_CTRL0_GAIN_RSVD ||</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="va">+       regval &gt; SX9324_REG_PROX_CTRL0_GAIN_8)</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>        return -EINVAL;</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="st">-   *val = 1 &lt;&lt; regval;</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="va">+   *val = 1 &lt;&lt; (regval - 1);</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Compile-tested only, as I don’t have SX9324 hardware.</p>
+<p><strong>Lesson.</strong> A condition in an <code>else</code> branch inherits the opposite of the <code>if</code>, so read it with that in mind.</p>
+</section>
+<section id="sx9310-off-selected-the-strongest-filter" class="level2">
+<h2 class="anchored" data-anchor-id="sx9310-off-selected-the-strongest-filter">sx9310: “off” selected the strongest filter</h2>
+<p><em>iio <code>testing</code>, applied by Jonathan Cameron on 15 November 2026.</em></p>
+<p><strong>Bug.</strong> The binding allows <code>semtech,proxraw-strength</code> values of 0, 2, 4 and 8, where 0 turns the filter off. The driver converts the property with <code>ilog2()</code>, which returns -1 for 0, and <code>FIELD_PREP()</code> masks that to 3 in the 2-bit field. A board asking for no filter got the same setting as <code>&lt;8&gt;</code>, the strongest one.</p>
+<p><strong>Fix.</strong> Keep 0 as register code 0:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode diff code-with-copy"><code class="sourceCode diff"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="st">-       } else {</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="va">+       } else if (raw) {</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="va">+           /* 0 means off; 2, 4 and 8 are codes 1 to 3. */</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>            raw = ilog2(raw);</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>        }</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>No in-tree device tree uses <code>&lt;0&gt;</code>, so this only affects out-of-tree boards. I checked the mapping with a userspace copy of the conversion: before the patch 0 and 8 both give code 3, and after it 0 gives 0.</p>
+<p><strong>Lesson.</strong> <code>ilog2(0)</code> was behind the gain bugs above too, so once a bad pattern turns up in a driver family it’s worth searching for the rest.</p>
+</section>
 <section id="alsa-my-laptop-was-matched-as-a-legion" class="level2">
 <h2 class="anchored" data-anchor-id="alsa-my-laptop-was-matched-as-a-legion">ALSA: my laptop was matched as a Legion</h2>
 <p><em>sound <code>for-linus</code>, applied by Takashi Iwai on 17 November 2026.</em></p>
 <p><strong>Bug.</strong> On my Lenovo V14 G2 ITL, <code>dmesg</code> said <code>ALC257: picked fixup  for codec SSID 17aa:38b7</code>. The controller’s PCI subsystem ID (<code>17aa:380e</code>) matches nothing in the quirk table, so the driver falls back to the codec’s ID (<code>17aa:38b7</code>) and finds the entry for a Legion Slim 7 whose <em>PCI</em> ID is <code>17aa:38b7</code>. That sets up two CS35L41 amplifiers this laptop doesn’t have.</p>
 <p><strong>Fix.</strong> A codec-ID-only entry, placed right after the Legion’s:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>    SND_PCI_QUIRK<span class="op">(</span><span class="bn">0x17aa</span><span class="op">,</span> <span class="bn">0x38b7</span><span class="op">,</span> <span class="st">"Legion Slim 7 16APH8"</span><span class="op">,</span> ALC287_FIXUP_CS35L41_I2C_2<span class="op">),</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">/* Lenovo V14 G2 ITL has PCI SSID 17aa:380e and codec SSID 17aa:38b7, which</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">     * falls back to the Legion Slim 7 16APH8 entry above; this must come after it</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">     */</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    HDA_CODEC_QUIRK<span class="op">(</span><span class="bn">0x17aa</span><span class="op">,</span> <span class="bn">0x38b7</span><span class="op">,</span> <span class="st">"Lenovo V14 G2 ITL"</span><span class="op">,</span> ALC269_FIXUP_LENOVO_XPAD_ACPI<span class="op">),</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>    SND_PCI_QUIRK<span class="op">(</span><span class="bn">0x17aa</span><span class="op">,</span> <span class="bn">0x38b7</span><span class="op">,</span> <span class="st">"Legion Slim 7 16APH8"</span><span class="op">,</span> ALC287_FIXUP_CS35L41_I2C_2<span class="op">),</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">/* Lenovo V14 G2 ITL has PCI SSID 17aa:380e and codec SSID 17aa:38b7, which</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co">     * falls back to the Legion Slim 7 16APH8 entry above; this must come after it</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co">     */</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    HDA_CODEC_QUIRK<span class="op">(</span><span class="bn">0x17aa</span><span class="op">,</span> <span class="bn">0x38b7</span><span class="op">,</span> <span class="st">"Lenovo V14 G2 ITL"</span><span class="op">,</span> ALC269_FIXUP_LENOVO_XPAD_ACPI<span class="op">),</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>The lookup stops at the first match, so the order matters: placed after it, a real Legion still matches on its PCI ID first. The fixup is the one the generic Lenovo fallback would have given this machine. I tested it on the laptop by forcing the same fixup (<code>lenovo-xpad-led</code>) from the command line: speakers, headphones and both microphones worked as before.</p>
 <p><strong>Review.</strong> <em>“Applied now. Thanks.”</em>, the same day, with no changes.</p>
 <p><strong>Lesson.</strong> My own <code>dmesg</code> is a good place to look for bugs, and having the hardware made the patch easy to test and to accept.</p>
