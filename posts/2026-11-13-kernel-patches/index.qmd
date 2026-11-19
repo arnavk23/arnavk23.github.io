@@ -20,13 +20,14 @@ merged from here on: a short entry for each one, and a row in the
 | Patch | Tree | Links |
 |---|---|---|
 | vmxnet3: stop DMA mapping the adapter structure | net-next | [v1](https://lore.kernel.org/all/20261021221221.502428-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261110154048.143227-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/commit/?id=42abea827cf2876e5e678db632d0965780e57706) |
-| dt-bindings: iio: adc: xlnx,zynqmp-ams: limit external channels to 30-50 | iio (`testing`) | [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&id=9c1cd6db6732aa8d1837a9e081f5c1f2e3ff10ce) |
-| iio: adc: xilinx-ams: fix out-of-bounds accesses when parsing channels | iio (`testing`) | [v1](https://lore.kernel.org/all/20261021225356.625288-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261023185652.195025-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&id=1f655751d7bee1406186c9968e81fbc104a7f076) |
-| iio: proximity: sx9310: reject out-of-range hardware gain values | iio (`testing`) | [v1](https://lore.kernel.org/all/20261107111710.442318-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261109165200.305266-1-kapoorarnav43@gmail.com/) · [v3](https://lore.kernel.org/all/20261111164041.341776-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&id=b33afe82260666aa3db53a954ed9acab73fcfb6f) |
-| iio: proximity: sx9360: reject out-of-range hardware gain values | iio (`testing`) | [v1](https://lore.kernel.org/all/20261107111710.442318-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261109165200.305266-1-kapoorarnav43@gmail.com/) · [v3](https://lore.kernel.org/all/20261111164041.341776-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&id=32122526491e3aab20476e1a30a6d45fe4dff443) |
-| iio: proximity: sx9324: reject reserved gain values on read | iio (`testing`) | [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&id=28711bd660bd176edec37d39e890e4a2c57835e6) |
-| iio: proximity: sx9310: fix semtech,proxraw-strength = <0> | iio (`testing`) | [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&id=56afa57ac23c97b5c311c83f9da86bb907e7c8a1) |
+| dt-bindings: iio: adc: xlnx,zynqmp-ams: limit external channels to 30-50 | iio (`togreg`) | [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=togreg&id=9c1cd6db6732aa8d1837a9e081f5c1f2e3ff10ce) |
+| iio: adc: xilinx-ams: fix out-of-bounds accesses when parsing channels | iio (`togreg`) | [v1](https://lore.kernel.org/all/20261021225356.625288-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261023185652.195025-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=togreg&id=1f655751d7bee1406186c9968e81fbc104a7f076) |
+| iio: proximity: sx9310: reject out-of-range hardware gain values | iio (`togreg`) | [v1](https://lore.kernel.org/all/20261107111710.442318-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261109165200.305266-1-kapoorarnav43@gmail.com/) · [v3](https://lore.kernel.org/all/20261111164041.341776-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=togreg&id=b33afe82260666aa3db53a954ed9acab73fcfb6f) |
+| iio: proximity: sx9360: reject out-of-range hardware gain values | iio (`togreg`) | [v1](https://lore.kernel.org/all/20261107111710.442318-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261109165200.305266-1-kapoorarnav43@gmail.com/) · [v3](https://lore.kernel.org/all/20261111164041.341776-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=togreg&id=32122526491e3aab20476e1a30a6d45fe4dff443) |
+| iio: proximity: sx9324: reject reserved gain values on read | iio (`togreg`) | [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=togreg&id=28711bd660bd176edec37d39e890e4a2c57835e6) |
+| iio: proximity: sx9310: fix semtech,proxraw-strength = <0> | iio (`togreg`) | [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=togreg&id=56afa57ac23c97b5c311c83f9da86bb907e7c8a1) |
 | ALSA: hda/realtek: Don't apply the Legion Slim 7 quirk to Lenovo V14 G2 ITL | sound (`for-linus`) | [v1](https://lore.kernel.org/all/20261116195503.11530-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound.git/commit/?h=for-linus&id=a7c800982bd0cc704a92c3b616e8bb049f2e68fa) |
+| platform/x86: ideapad-laptop: Add V14 G2 ITL to ideapad_dytc_v4_allow_table[] | platform-drivers-x86 (`review-ilpo-next`) | [commit](https://git.kernel.org/pub/scm/linux/kernel/git/pdx86/platform-drivers-x86.git/commit/?h=review-ilpo-next&id=f60911c0c21228b5c2b28630b24441c8ae68ee62) |
 
 : Patches applied since the mentorship. {#tbl-results}
 
@@ -68,7 +69,7 @@ a commit message is the one the reviewer replies to.
 
 ## xilinx-ams: more channels than the buffer has room for
 
-*iio `testing`, applied by Jonathan Cameron on 14 November 2026. Reviewed by Sai
+*iio `togreg`, applied by Jonathan Cameron on 14 November 2026. Reviewed by Sai
 Krishna Potthuri, binding acked by Krzysztof Kozlowski.*
 
 **Bug.** `ams_parse_firmware()` allocates room for 51 channel specs and fills them from
@@ -104,7 +105,7 @@ bad input existed at all.
 
 ## sx9310 and sx9360: gains that wrapped around
 
-*iio `testing`, applied by Jonathan Cameron on 14 November 2026. Reviewed by Andy
+*iio `togreg`, applied by Jonathan Cameron on 14 November 2026. Reviewed by Andy
 Shevchenko.*
 
 **Bug.** Both `write_gain()` functions put `ilog2(val)` into a small register field
@@ -138,7 +139,7 @@ never meaningful.
 
 ## sx9324: a range check that could never fire
 
-*iio `testing`, applied by Jonathan Cameron on 15 November 2026. Reviewed by Joshua
+*iio `togreg`, applied by Jonathan Cameron on 15 November 2026. Reviewed by Joshua
 Crofts.*
 
 **Bug.** `sx9324_read_gain()` is meant to return `-EINVAL` for the reserved gain codes
@@ -169,7 +170,7 @@ it with that in mind.
 
 ## sx9310: "off" selected the strongest filter
 
-*iio `testing`, applied by Jonathan Cameron on 15 November 2026.*
+*iio `togreg`, applied by Jonathan Cameron on 15 November 2026.*
 
 **Bug.** The binding allows `semtech,proxraw-strength` values of 0, 2, 4 and 8, where 0
 turns the filter off. The driver converts the property with `ilog2()`, which returns -1
@@ -223,5 +224,38 @@ microphones worked as before.
 
 **Lesson.** My own `dmesg` is a good place to look for bugs, and having the hardware
 made the patch easy to test and to accept.
+
+## ideapad-laptop: power profiles for my laptop
+
+*platform-drivers-x86 `review-ilpo-next`, applied by Ilpo Järvinen on 19 November 2026.
+Reviewed by Rong Zhang.*
+
+**Bug.** My V14 G2 ITL controls its power profiles with DYTC version 4, which
+`ideapad-laptop` only trusts on models listed in an allow table. Every boot logged
+`DYTC_VERSION 4 support may not work`, and no `platform_profile` was registered, so
+desktop power-profile switches did nothing.
+
+**Fix.** Add the laptop to `ideapad_dytc_v4_allow_table[]`:
+
+```c
+	{
+		/* V14 G2 ITL */
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+			DMI_MATCH(DMI_PRODUCT_VERSION, "V14 G2 ITL")
+		}
+	},
+```
+
+I tested it on the laptop with `ideapad_laptop.allow_v4_dytc=Y`, which takes the same
+code path. All three profiles register and read back, and the firmware applies them:
+with all CPUs busy on AC power, the package drew about 14 W in low-power, 17 W in
+balanced and 24 W in performance.
+
+**Review.** Rong gave a Reviewed-by and asked whether Fn+Q switches profiles under
+Windows, since then the Linux side could be improved too.
+
+**Lesson.** A warning that appears on every boot is a bug report waiting to be
+written, and measured numbers make a one-line table entry easy to accept.
 
 *Cover: Tux, by Larry Ewing, created with The GIMP.*
