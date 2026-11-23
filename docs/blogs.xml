@@ -84,6 +84,21 @@ Table&nbsp;1: Patches applied since the mentorship.
 <td>platform-drivers-x86 (<code>review-ilpo-next</code>)</td>
 <td><a href="https://git.kernel.org/pub/scm/linux/kernel/git/pdx86/platform-drivers-x86.git/commit/?h=review-ilpo-next&amp;id=f60911c0c21228b5c2b28630b24441c8ae68ee62">commit</a></td>
 </tr>
+<tr class="even">
+<td>iio: proximity: sx9310: keep the IRQ balanced across suspend and resume</td>
+<td>iio (<code>testing</code>)</td>
+<td><a href="https://lore.kernel.org/all/20261026100322.16720-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261026112342.65917-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://lore.kernel.org/all/20261028220444.70121-1-kapoorarnav43@gmail.com/">v3</a> · <a href="https://lore.kernel.org/all/20261101102518.22757-1-kapoorarnav43@gmail.com/">v4</a> · <a href="https://lore.kernel.org/all/20261114073601.23404-1-kapoorarnav43@gmail.com/">v5</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&amp;id=1268d9bc9ebe06cf520df75e5f4d9183d8321412">commit</a></td>
+</tr>
+<tr class="odd">
+<td>iio: proximity: sx9324: keep the IRQ balanced across suspend and resume</td>
+<td>iio (<code>testing</code>)</td>
+<td><a href="https://lore.kernel.org/all/20261026100322.16720-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261026112342.65917-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://lore.kernel.org/all/20261028220444.70121-1-kapoorarnav43@gmail.com/">v3</a> · <a href="https://lore.kernel.org/all/20261101102518.22757-1-kapoorarnav43@gmail.com/">v4</a> · <a href="https://lore.kernel.org/all/20261114073601.23404-1-kapoorarnav43@gmail.com/">v5</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&amp;id=554f6cecdb29eb91509dd7e374f954d4b027f4e7">commit</a></td>
+</tr>
+<tr class="even">
+<td>iio: proximity: sx9360: keep the IRQ balanced across suspend and resume</td>
+<td>iio (<code>testing</code>)</td>
+<td><a href="https://lore.kernel.org/all/20261026100322.16720-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261026112342.65917-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://lore.kernel.org/all/20261028220444.70121-1-kapoorarnav43@gmail.com/">v3</a> · <a href="https://lore.kernel.org/all/20261101102518.22757-1-kapoorarnav43@gmail.com/">v4</a> · <a href="https://lore.kernel.org/all/20261114073601.23404-1-kapoorarnav43@gmail.com/">v5</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&amp;id=f2cbef9101b9fc979a324bb1242b8b802a2484b6">commit</a></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -370,6 +385,70 @@ font-style: inherit;">},</span></span></code></pre></div></div>
 <p>I tested it on the laptop with <code>ideapad_laptop.allow_v4_dytc=Y</code>, which takes the same code path. All three profiles register and read back, and the firmware applies them: with all CPUs busy on AC power, the package drew about 14 W in low-power, 17 W in balanced and 24 W in performance.</p>
 <p><strong>Review.</strong> Rong gave a Reviewed-by and asked whether Fn+Q switches profiles under Windows, since then the Linux side could be improved too.</p>
 <p><strong>Lesson.</strong> A warning that appears on every boot is a bug report waiting to be written, and measured numbers make a one-line table entry easy to accept.</p>
+</section>
+<section id="sx93xx-an-interrupt-left-off-after-a-failed-suspend" class="level2">
+<h2 class="anchored" data-anchor-id="sx93xx-an-interrupt-left-off-after-a-failed-suspend">sx93xx: an interrupt left off after a failed suspend</h2>
+<p><em>iio <code>testing</code>, applied by Jonathan Cameron on 22 November 2026 and marked for stable. Three patches, one per driver.</em></p>
+<p><strong>Bug.</strong> The sx9310, sx9324 and sx9360 suspend callbacks disable the interrupt first and then talk to the chip over I2C. If one of those register accesses fails, suspend returns with the interrupt still disabled, and since resume isn’t called after a failed suspend, nothing ever enables it again. Resume had the same problem: it returned on an error before reaching <code>enable_irq()</code>.</p>
+<p><strong>Fix.</strong> Split the register accesses into a <code>*_sleep()</code> helper, enable the interrupt again when it fails, and enable it as the first step of resume so that resume mirrors suspend:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb8-1">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>data<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-&gt;</span>client<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-&gt;</span>irq<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span></span>
+<span id="cb8-2">        disable_irq<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>data<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-&gt;</span>client<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-&gt;</span>irq<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">);</span></span>
+<span id="cb8-3"></span>
+<span id="cb8-4">    ret <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> sx9310_sleep<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>data<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">);</span></span>
+<span id="cb8-5">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/* Resume isn't called if suspend fails. */</span></span>
+<span id="cb8-6">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>ret <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&amp;&amp;</span> data<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-&gt;</span>client<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-&gt;</span>irq<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">)</span></span>
+<span id="cb8-7">        enable_irq<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">(</span>data<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-&gt;</span>client<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-&gt;</span>irq<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">);</span></span></code></pre></div></div>
+<p><code>disable_irq()</code> replaces <code>disable_irq_nosync()</code> and runs before the mutex is taken: it waits for the threaded handlers, which take the same mutex, so none of them can still be running once suspend returns. The drivers work without an interrupt line, so the calls are skipped when <code>client-&gt;irq</code> is 0. Compile-tested only.</p>
+<p><strong>Review.</strong> It took five versions. v1 was three separate patches, which became a series in v2, where Joshua Crofts gave a Reviewed-by and Andy asked for a blank line after <code>guard()</code> and a local <code>regmap</code> pointer. On v3, Jonathan asked for resume to mirror suspend by enabling the interrupt before waking the device. The Sashiko review bot then pointed out that v4 left the interrupt enabled while suspend was still talking to the chip, so a threaded handler could block on the mutex and run after suspend had returned. v5 fixed that by using <code>disable_irq()</code> before taking the mutex. Jonathan applied it but is not rushing it into this cycle, since failures in suspend and resume should be very rare.</p>
+<p><strong>Lesson.</strong> An error path has to undo exactly what was done before it, and the order of the undo matters as much as the undo itself.</p>
 <p><em>Cover: Tux, by Larry Ewing, created with The GIMP.</em></p>
 
 

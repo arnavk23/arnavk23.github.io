@@ -28,6 +28,9 @@ merged from here on: a short entry for each one, and a row in the
 | iio: proximity: sx9310: fix semtech,proxraw-strength = <0> | iio (`togreg`) | [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=togreg&id=56afa57ac23c97b5c311c83f9da86bb907e7c8a1) |
 | ALSA: hda/realtek: Don't apply the Legion Slim 7 quirk to Lenovo V14 G2 ITL | sound (`for-linus`) | [v1](https://lore.kernel.org/all/20261116195503.11530-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound.git/commit/?h=for-linus&id=a7c800982bd0cc704a92c3b616e8bb049f2e68fa) |
 | platform/x86: ideapad-laptop: Add V14 G2 ITL to ideapad_dytc_v4_allow_table[] | platform-drivers-x86 (`review-ilpo-next`) | [commit](https://git.kernel.org/pub/scm/linux/kernel/git/pdx86/platform-drivers-x86.git/commit/?h=review-ilpo-next&id=f60911c0c21228b5c2b28630b24441c8ae68ee62) |
+| iio: proximity: sx9310: keep the IRQ balanced across suspend and resume | iio (`testing`) | [v1](https://lore.kernel.org/all/20261026100322.16720-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261026112342.65917-1-kapoorarnav43@gmail.com/) · [v3](https://lore.kernel.org/all/20261028220444.70121-1-kapoorarnav43@gmail.com/) · [v4](https://lore.kernel.org/all/20261101102518.22757-1-kapoorarnav43@gmail.com/) · [v5](https://lore.kernel.org/all/20261114073601.23404-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&id=1268d9bc9ebe06cf520df75e5f4d9183d8321412) |
+| iio: proximity: sx9324: keep the IRQ balanced across suspend and resume | iio (`testing`) | [v1](https://lore.kernel.org/all/20261026100322.16720-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261026112342.65917-1-kapoorarnav43@gmail.com/) · [v3](https://lore.kernel.org/all/20261028220444.70121-1-kapoorarnav43@gmail.com/) · [v4](https://lore.kernel.org/all/20261101102518.22757-1-kapoorarnav43@gmail.com/) · [v5](https://lore.kernel.org/all/20261114073601.23404-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&id=554f6cecdb29eb91509dd7e374f954d4b027f4e7) |
+| iio: proximity: sx9360: keep the IRQ balanced across suspend and resume | iio (`testing`) | [v1](https://lore.kernel.org/all/20261026100322.16720-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261026112342.65917-1-kapoorarnav43@gmail.com/) · [v3](https://lore.kernel.org/all/20261028220444.70121-1-kapoorarnav43@gmail.com/) · [v4](https://lore.kernel.org/all/20261101102518.22757-1-kapoorarnav43@gmail.com/) · [v5](https://lore.kernel.org/all/20261114073601.23404-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&id=f2cbef9101b9fc979a324bb1242b8b802a2484b6) |
 
 : Patches applied since the mentorship. {#tbl-results}
 
@@ -257,5 +260,48 @@ Windows, since then the Linux side could be improved too.
 
 **Lesson.** A warning that appears on every boot is a bug report waiting to be
 written, and measured numbers make a one-line table entry easy to accept.
+
+## sx93xx: an interrupt left off after a failed suspend
+
+*iio `testing`, applied by Jonathan Cameron on 22 November 2026 and marked for stable.
+Three patches, one per driver.*
+
+**Bug.** The sx9310, sx9324 and sx9360 suspend callbacks disable the interrupt first and
+then talk to the chip over I2C. If one of those register accesses fails, suspend returns
+with the interrupt still disabled, and since resume isn't called after a failed suspend,
+nothing ever enables it again. Resume had the same problem: it returned on an error
+before reaching `enable_irq()`.
+
+**Fix.** Split the register accesses into a `*_sleep()` helper, enable the interrupt
+again when it fails, and enable it as the first step of resume so that resume mirrors
+suspend:
+
+```c
+	if (data->client->irq)
+		disable_irq(data->client->irq);
+
+	ret = sx9310_sleep(data);
+	/* Resume isn't called if suspend fails. */
+	if (ret && data->client->irq)
+		enable_irq(data->client->irq);
+```
+
+`disable_irq()` replaces `disable_irq_nosync()` and runs before the mutex is taken: it
+waits for the threaded handlers, which take the same mutex, so none of them can still be
+running once suspend returns. The drivers work without an interrupt line, so the calls
+are skipped when `client->irq` is 0. Compile-tested only.
+
+**Review.** It took five versions. v1 was three separate patches, which became a series in
+v2, where Joshua Crofts gave a Reviewed-by and Andy asked for a blank line after
+`guard()` and a local `regmap` pointer. On v3, Jonathan asked for resume to mirror
+suspend by enabling the interrupt before waking the device. The Sashiko review bot then
+pointed out that v4 left the interrupt enabled while suspend was still talking to the
+chip, so a threaded handler could block on the mutex and run after suspend had
+returned. v5 fixed that by using `disable_irq()` before taking the mutex. Jonathan
+applied it but is not rushing it into this cycle, since failures in suspend and resume
+should be very rare.
+
+**Lesson.** An error path has to undo exactly what was done before it, and the order of
+the undo matters as much as the undo itself.
 
 *Cover: Tux, by Larry Ewing, created with The GIMP.*
