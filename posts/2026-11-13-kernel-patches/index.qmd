@@ -31,6 +31,8 @@ merged from here on: a short entry for each one, and a row in the
 | iio: proximity: sx9310: keep the IRQ balanced across suspend and resume | iio (`testing`) | [v1](https://lore.kernel.org/all/20261026100322.16720-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261026112342.65917-1-kapoorarnav43@gmail.com/) · [v3](https://lore.kernel.org/all/20261028220444.70121-1-kapoorarnav43@gmail.com/) · [v4](https://lore.kernel.org/all/20261101102518.22757-1-kapoorarnav43@gmail.com/) · [v5](https://lore.kernel.org/all/20261114073601.23404-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&id=1268d9bc9ebe06cf520df75e5f4d9183d8321412) |
 | iio: proximity: sx9324: keep the IRQ balanced across suspend and resume | iio (`testing`) | [v1](https://lore.kernel.org/all/20261026100322.16720-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261026112342.65917-1-kapoorarnav43@gmail.com/) · [v3](https://lore.kernel.org/all/20261028220444.70121-1-kapoorarnav43@gmail.com/) · [v4](https://lore.kernel.org/all/20261101102518.22757-1-kapoorarnav43@gmail.com/) · [v5](https://lore.kernel.org/all/20261114073601.23404-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&id=554f6cecdb29eb91509dd7e374f954d4b027f4e7) |
 | iio: proximity: sx9360: keep the IRQ balanced across suspend and resume | iio (`testing`) | [v1](https://lore.kernel.org/all/20261026100322.16720-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261026112342.65917-1-kapoorarnav43@gmail.com/) · [v3](https://lore.kernel.org/all/20261028220444.70121-1-kapoorarnav43@gmail.com/) · [v4](https://lore.kernel.org/all/20261101102518.22757-1-kapoorarnav43@gmail.com/) · [v5](https://lore.kernel.org/all/20261114073601.23404-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&id=f2cbef9101b9fc979a324bb1242b8b802a2484b6) |
+| ASoC: SOF: control: reject out-of-range enum values | sound (broonie `for-7.4`) | [v1](https://lore.kernel.org/all/20261117105953.188645-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261118103129.113970-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git/commit/?h=for-7.4&id=3092b9e481fedc413bf7acda9edc04b0bd8cb28a) |
+| ALSA: hda: reject invalid values in the IEC958 switch put callbacks | sound (`for-next`) | [v1](https://lore.kernel.org/all/20261123170203.243633-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound.git/commit/?h=for-next&id=c871dbdeacfbb8a48d90406b8a96f3c41c3924b5) |
 
 : Patches applied since the mentorship. {#tbl-results}
 
@@ -303,5 +305,64 @@ should be very rare.
 
 **Lesson.** An error path has to undo exactly what was done before it, and the order of
 the undo matters as much as the undo itself.
+
+## SOF: enum items past the end of the list
+
+*sound (Mark Brown's `for-7.4`), applied by Mark Brown on 23 November 2026.*
+
+**Bug.** `snd_sof_enum_put()` passed the item indexes from user space straight to the
+IPC3 and IPC4 `enum_put()` ops, which stored them and sent them to the DSP. On my
+laptop (Tiger Lake, IPC4 `sof-hda-generic-2ch.tplg`), "Dmic0 Capture TDFB angle set
+enum" has 13 items but accepted 13 and `0xffffffff` and read them back. The ALSA
+`mixer-test` selftest reported it as a `write_invalid` failure.
+
+**Fix.** Reject any index past the last item, as `snd_soc_put_enum_double()` already does:
+
+```c
+	for (i = 0; i < scontrol->num_channels; i++)
+		if (ucontrol->value.enumerated.item[i] >= se->items)
+			return -EINVAL;
+```
+
+Tested on the laptop: both writes now fail with `-EINVAL` and the selftest failure is gone.
+
+**Review.** v1 was a four-patch series. HyeongJun An pointed out that the volume and
+switch checks (patches 1 and 2) overlapped a series he had sent a few days earlier, and
+on patch 3, which reported volume changes in mixer steps, Mark wrote: "You need to
+compare ipc_to_mixer(), there can be duplicated steps." While testing that change I
+found that its commit message was wrong: the spurious events the selftest saw came from
+out-of-range writes being accepted, which the range checks fix, and a fresh module load
+gave no case that needed the patch. So v2 was just the enum check, and Mark applied it.
+
+**Lesson.** Test the claim in the commit message as well as the code. Here the test
+showed the reason I gave was wrong, and a whole patch went away.
+
+## HDA: IEC958 switches that took any value
+
+*sound `for-next`, applied by Takashi Iwai on 24 November 2026. Tested by HyeongJun An.*
+
+**Bug.** The put callbacks for the three HDA IEC958 switches (S/PDIF out, S/PDIF in, and
+the shared S/PDIF switch) treated any non-zero value as "on". So writes of 2, -1 or
+`INT_MAX` to these boolean controls succeeded and read back as 1, while
+`snd_hda_mixer_amp_switch_put()` in the same file already rejects them.
+
+**Fix.** Check the value the same way before taking `spdif_mutex`:
+
+```c
+	if (ucontrol->value.integer.value[0] < 0 ||
+	    ucontrol->value.integer.value[0] > 1)
+		return -EINVAL;
+```
+
+I tested it on my laptop's three HDMI "IEC958 Playback Switch" controls with raw
+`SNDRV_CTL_IOCTL_ELEM_WRITE` calls: all nine invalid writes failed with `-EINVAL` and
+left the value unchanged, while 0 and 1 still worked. The S/PDIF in and shared switches
+don't exist on this machine, so those two hunks were only build-tested.
+
+**Review.** HyeongJun An repeated the test on a Dell Latitude 9420 and gave a Tested-by.
+Takashi applied v1 the next day.
+
+**Lesson.** When one callback in a file already validates its input, check its
+neighbours: the same bug is often sitting right next to it.
 
 *Cover: Tux, by Larry Ewing, created with The GIMP.*
