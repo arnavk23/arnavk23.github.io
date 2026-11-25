@@ -76,8 +76,8 @@ Table&nbsp;1: Patches applied since the mentorship.
 </tr>
 <tr class="even">
 <td>ALSA: hda/realtek: Don’t apply the Legion Slim 7 quirk to Lenovo V14 G2 ITL</td>
-<td>sound (<code>for-linus</code>)</td>
-<td><a href="https://lore.kernel.org/all/20261116195503.11530-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound.git/commit/?h=for-linus&amp;id=a7c800982bd0cc704a92c3b616e8bb049f2e68fa">commit</a></td>
+<td>mainline</td>
+<td><a href="https://lore.kernel.org/all/20261116195503.11530-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=a7c800982bd0cc704a92c3b616e8bb049f2e68fa">commit</a></td>
 </tr>
 <tr class="odd">
 <td>platform/x86: ideapad-laptop: Add V14 G2 ITL to ideapad_dytc_v4_allow_table[]</td>
@@ -1440,25 +1440,25 @@ Table&nbsp;2: The six patches. The <code>iio.git</code> branches are rebased fro
 <td>sx9324: fix out-of-bounds read of scan period table</td>
 <td>iio fixes, stable</td>
 <td>Andy Shevchenko</td>
-<td><a href="https://lore.kernel.org/all/20261021225417.626946-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261023192700.221344-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&amp;id=7b5f54280f8e6ef07664f6705dd005feefbe87d1">commit</a></td>
+<td><a href="https://lore.kernel.org/all/20261021225417.626946-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261023192700.221344-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=7b5f54280f8e6ef07664f6705dd005feefbe87d1">commit</a></td>
 </tr>
 <tr class="even">
 <td>mcp3564: reject devices without match data</td>
 <td>iio fixes</td>
 <td>Andy Shevchenko</td>
-<td><a href="https://lore.kernel.org/all/20261021225431.627718-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261023185837.195943-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&amp;id=1e50a03490120f1978c323741013457bc5c4582c">commit</a></td>
+<td><a href="https://lore.kernel.org/all/20261021225431.627718-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261023185837.195943-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=1e50a03490120f1978c323741013457bc5c4582c">commit</a></td>
 </tr>
 <tr class="odd">
 <td>sx9360: fix sampling frequency write and available range</td>
 <td>iio fixes, stable</td>
 <td>Andy Shevchenko (v1)</td>
-<td><a href="https://lore.kernel.org/all/20261024180149.144609-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261025221241.19596-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&amp;id=d252425c1533bfacd5940faa3371af82196bff5b">commit</a></td>
+<td><a href="https://lore.kernel.org/all/20261024180149.144609-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://lore.kernel.org/all/20261025221241.19596-1-kapoorarnav43@gmail.com/">v2</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=d252425c1533bfacd5940faa3371af82196bff5b">commit</a></td>
 </tr>
 <tr class="even">
 <td>sx9500: ignore event config writes that don’t change state</td>
 <td>iio fixes, stable</td>
 <td>—</td>
-<td><a href="https://lore.kernel.org/all/20261024175658.130546-1-kapoorarnav43@gmail.com/">patch</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&amp;id=b8ed9165906597b69a46fabf39ab41690721ebe8">commit</a></td>
+<td><a href="https://lore.kernel.org/all/20261024175658.130546-1-kapoorarnav43@gmail.com/">patch</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=b8ed9165906597b69a46fabf39ab41690721ebe8">commit</a></td>
 </tr>
 <tr class="odd">
 <td>core: fix signed integer overflow in <code>iio_str_to_fixpoint()</code></td>
@@ -1661,7 +1661,7 @@ font-style: inherit;">+   *hz = div64_u64_rem(HZ_PER_GHZ, interval_ns, &amp;rem)
 <span id="cb2-7"><span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">+   *uhz = div64_u64(rem * MICROHZ_PER_HZ, interval_ns);</span></span></code></pre></div></div>
-<p>Andy Shevchenko’s review of v1 pointed out over-long lines, asked for the named unit constants (<code>HZ_PER_GHZ</code>, <code>MICROHZ_PER_HZ</code>) instead of bare literals, and corrected the format of my <code>Assisted-by:</code> tag. The v2 got his <code>Reviewed-by:</code>, and Jonathan applied it to <code>fixes-togreg</code> with <code>Cc: stable</code> (<a href="https://lore.kernel.org/all/20261006045244.13993-1-kapoorarnav43@gmail.com/">lore</a>, <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&amp;id=043ececf147863fbd253687aa0b9edcac358a711">commit</a>).</p>
+<p>Andy Shevchenko’s review of v1 pointed out over-long lines, asked for the named unit constants (<code>HZ_PER_GHZ</code>, <code>MICROHZ_PER_HZ</code>) instead of bare literals, and corrected the format of my <code>Assisted-by:</code> tag. The v2 got his <code>Reviewed-by:</code>, and Jonathan applied it to <code>fixes-togreg</code> with <code>Cc: stable</code> (<a href="https://lore.kernel.org/all/20261006045244.13993-1-kapoorarnav43@gmail.com/">lore</a>, <a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=043ececf147863fbd253687aa0b9edcac358a711">commit</a>).</p>
 </section>
 <section id="three-axes-one-calibration-value" class="level3">
 <h3 class="anchored" data-anchor-id="three-axes-one-calibration-value">Three axes, one calibration value</h3>
@@ -1712,7 +1712,7 @@ Table&nbsp;1: Magnetometer channel addresses read from the compiled object with 
 </div>
 </figure>
 </div>
-<p>The fix is a single line in the macro, <code>.address = (_chan2) - IIO_MOD_X</code>, which maps X, Y and Z to 0, 1 and 2 in the same order <code>inv_magn_init()</code> fills the array (<a href="https://lore.kernel.org/all/20261011045619.357261-1-kapoorarnav43@gmail.com/">lore</a>, <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&amp;id=e5f7a6684a23d9b20184a81b4ebded3b3504ccdc">commit</a>).</p>
+<p>The fix is a single line in the macro, <code>.address = (_chan2) - IIO_MOD_X</code>, which maps X, Y and Z to 0, 1 and 2 in the same order <code>inv_magn_init()</code> fills the array (<a href="https://lore.kernel.org/all/20261011045619.357261-1-kapoorarnav43@gmail.com/">lore</a>, <a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=e5f7a6684a23d9b20184a81b4ebded3b3504ccdc">commit</a>).</p>
 </section>
 <section id="positional-initialisers-and-swapped-startup-times" class="level3">
 <h3 class="anchored" data-anchor-id="positional-initialisers-and-swapped-startup-times">Positional initialisers and swapped startup times</h3>
@@ -1771,7 +1771,7 @@ font-style: inherit;">+       .gyro = INV_MPU6500_GYRO_STARTUP_TIME,</span></spa
 background-color: null;
 font-style: inherit;">+   },</span></span></code></pre></div></div>
 <p>C positional initialisers assign values by position, not by meaning, so the compiler had no reason to complain. The accelerometer and gyroscope startup times had been swapped for all 19 supported chips since 2021. Using designated initialisers fixes the bug and makes the same mistake impossible to repeat.</p>
-<p>Jean-Baptiste Maneyrol, the driver’s maintainer at TDK InvenSense, acked both <code>inv_mpu6050</code> fixes. Jonathan applied them to <code>fixes-togreg</code>, marked for stable (<a href="https://lore.kernel.org/all/20261011045710.357809-1-kapoorarnav43@gmail.com/">lore</a>, <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&amp;id=3a5e2ca34cadd9d5993064884aa5b9c4f6d71dff">commit</a>).</p>
+<p>Jean-Baptiste Maneyrol, the driver’s maintainer at TDK InvenSense, acked both <code>inv_mpu6050</code> fixes. Jonathan applied them to <code>fixes-togreg</code>, marked for stable (<a href="https://lore.kernel.org/all/20261011045710.357809-1-kapoorarnav43@gmail.com/">lore</a>, <a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=3a5e2ca34cadd9d5993064884aa5b9c4f6d71dff">commit</a>).</p>
 </section>
 </section>
 <section id="documentation-and-why-reviewers-ask-for-more" class="level2">
@@ -1851,25 +1851,25 @@ Table&nbsp;2: All nine applied patches.
 <td>scmi_sensors: fix truncating 64-bit divisions</td>
 <td>iio fixes, stable</td>
 <td>Andy Shevchenko</td>
-<td><a href="https://lore.kernel.org/all/20261006045244.13993-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&amp;id=043ececf147863fbd253687aa0b9edcac358a711">commit</a></td>
+<td><a href="https://lore.kernel.org/all/20261006045244.13993-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=043ececf147863fbd253687aa0b9edcac358a711">commit</a></td>
 </tr>
 <tr class="even">
 <td>inv_mpu6050: fix magnetometer scale of Y and Z axes</td>
 <td>iio fixes, stable</td>
 <td>Jean-Baptiste Maneyrol</td>
-<td><a href="https://lore.kernel.org/all/20261011045619.357261-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&amp;id=e5f7a6684a23d9b20184a81b4ebded3b3504ccdc">commit</a></td>
+<td><a href="https://lore.kernel.org/all/20261011045619.357261-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=e5f7a6684a23d9b20184a81b4ebded3b3504ccdc">commit</a></td>
 </tr>
 <tr class="odd">
 <td>inv_mpu6050: fix swapped accel and gyro startup times</td>
 <td>iio fixes, stable</td>
 <td>Jean-Baptiste Maneyrol</td>
-<td><a href="https://lore.kernel.org/all/20261011045710.357809-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&amp;id=3a5e2ca34cadd9d5993064884aa5b9c4f6d71dff">commit</a></td>
+<td><a href="https://lore.kernel.org/all/20261011045710.357809-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=3a5e2ca34cadd9d5993064884aa5b9c4f6d71dff">commit</a></td>
 </tr>
 <tr class="even">
 <td>cros_ec_sensors: sensor_scale for CALIBSCALE</td>
 <td>iio fixes</td>
 <td>Joshua Crofts, Tzung-Bi Shih</td>
-<td><a href="https://lore.kernel.org/all/20261011045410.356156-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&amp;id=0f8945d5da179594ed7ba058eeb363964438d2d7">commit</a></td>
+<td><a href="https://lore.kernel.org/all/20261011045410.356156-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=0f8945d5da179594ed7ba058eeb363964438d2d7">commit</a></td>
 </tr>
 <tr class="odd">
 <td>sfc: fix stale kernel-doc in net_driver.h</td>

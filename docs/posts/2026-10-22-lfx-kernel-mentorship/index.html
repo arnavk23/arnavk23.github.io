@@ -501,7 +501,7 @@ Figure&nbsp;2: Sampling frequency reported by <code>convert_ns_to_freq()</code> 
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="st">-   do_div(*uhz, interval_ns);</span></span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="va">+   *hz = div64_u64_rem(HZ_PER_GHZ, interval_ns, &amp;rem);</span></span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="va">+   *uhz = div64_u64(rem * MICROHZ_PER_HZ, interval_ns);</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Andy Shevchenko’s review of v1 pointed out over-long lines, asked for the named unit constants (<code>HZ_PER_GHZ</code>, <code>MICROHZ_PER_HZ</code>) instead of bare literals, and corrected the format of my <code>Assisted-by:</code> tag. The v2 got his <code>Reviewed-by:</code>, and Jonathan applied it to <code>fixes-togreg</code> with <code>Cc: stable</code> (<a href="https://lore.kernel.org/all/20261006045244.13993-1-kapoorarnav43@gmail.com/">lore</a>, <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&amp;id=043ececf147863fbd253687aa0b9edcac358a711">commit</a>).</p>
+<p>Andy Shevchenko’s review of v1 pointed out over-long lines, asked for the named unit constants (<code>HZ_PER_GHZ</code>, <code>MICROHZ_PER_HZ</code>) instead of bare literals, and corrected the format of my <code>Assisted-by:</code> tag. The v2 got his <code>Reviewed-by:</code>, and Jonathan applied it to <code>fixes-togreg</code> with <code>Cc: stable</code> (<a href="https://lore.kernel.org/all/20261006045244.13993-1-kapoorarnav43@gmail.com/">lore</a>, <a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=043ececf147863fbd253687aa0b9edcac358a711">commit</a>).</p>
 </section>
 <section id="three-axes-one-calibration-value" class="level3">
 <h3 class="anchored" data-anchor-id="three-axes-one-calibration-value">Three axes, one calibration value</h3>
@@ -552,7 +552,7 @@ Table&nbsp;1: Magnetometer channel addresses read from the compiled object with 
 </div>
 </figure>
 </div>
-<p>The fix is a single line in the macro, <code>.address = (_chan2) - IIO_MOD_X</code>, which maps X, Y and Z to 0, 1 and 2 in the same order <code>inv_magn_init()</code> fills the array (<a href="https://lore.kernel.org/all/20261011045619.357261-1-kapoorarnav43@gmail.com/">lore</a>, <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&amp;id=e5f7a6684a23d9b20184a81b4ebded3b3504ccdc">commit</a>).</p>
+<p>The fix is a single line in the macro, <code>.address = (_chan2) - IIO_MOD_X</code>, which maps X, Y and Z to 0, 1 and 2 in the same order <code>inv_magn_init()</code> fills the array (<a href="https://lore.kernel.org/all/20261011045619.357261-1-kapoorarnav43@gmail.com/">lore</a>, <a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=e5f7a6684a23d9b20184a81b4ebded3b3504ccdc">commit</a>).</p>
 </section>
 <section id="positional-initialisers-and-swapped-startup-times" class="level3">
 <h3 class="anchored" data-anchor-id="positional-initialisers-and-swapped-startup-times">Positional initialisers and swapped startup times</h3>
@@ -571,7 +571,7 @@ Table&nbsp;1: Magnetometer channel addresses read from the compiled object with 
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="va">+       .gyro = INV_MPU6500_GYRO_STARTUP_TIME,</span></span>
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="va">+   },</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>C positional initialisers assign values by position, not by meaning, so the compiler had no reason to complain. The accelerometer and gyroscope startup times had been swapped for all 19 supported chips since 2021. Using designated initialisers fixes the bug and makes the same mistake impossible to repeat.</p>
-<p>Jean-Baptiste Maneyrol, the driver’s maintainer at TDK InvenSense, acked both <code>inv_mpu6050</code> fixes. Jonathan applied them to <code>fixes-togreg</code>, marked for stable (<a href="https://lore.kernel.org/all/20261011045710.357809-1-kapoorarnav43@gmail.com/">lore</a>, <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&amp;id=3a5e2ca34cadd9d5993064884aa5b9c4f6d71dff">commit</a>).</p>
+<p>Jean-Baptiste Maneyrol, the driver’s maintainer at TDK InvenSense, acked both <code>inv_mpu6050</code> fixes. Jonathan applied them to <code>fixes-togreg</code>, marked for stable (<a href="https://lore.kernel.org/all/20261011045710.357809-1-kapoorarnav43@gmail.com/">lore</a>, <a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=3a5e2ca34cadd9d5993064884aa5b9c4f6d71dff">commit</a>).</p>
 </section>
 </section>
 <section id="documentation-and-why-reviewers-ask-for-more" class="level2">
@@ -651,25 +651,25 @@ Table&nbsp;2: All nine applied patches.
 <td>scmi_sensors: fix truncating 64-bit divisions</td>
 <td>iio fixes, stable</td>
 <td>Andy Shevchenko</td>
-<td><a href="https://lore.kernel.org/all/20261006045244.13993-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&amp;id=043ececf147863fbd253687aa0b9edcac358a711">commit</a></td>
+<td><a href="https://lore.kernel.org/all/20261006045244.13993-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=043ececf147863fbd253687aa0b9edcac358a711">commit</a></td>
 </tr>
 <tr class="even">
 <td>inv_mpu6050: fix magnetometer scale of Y and Z axes</td>
 <td>iio fixes, stable</td>
 <td>Jean-Baptiste Maneyrol</td>
-<td><a href="https://lore.kernel.org/all/20261011045619.357261-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&amp;id=e5f7a6684a23d9b20184a81b4ebded3b3504ccdc">commit</a></td>
+<td><a href="https://lore.kernel.org/all/20261011045619.357261-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=e5f7a6684a23d9b20184a81b4ebded3b3504ccdc">commit</a></td>
 </tr>
 <tr class="odd">
 <td>inv_mpu6050: fix swapped accel and gyro startup times</td>
 <td>iio fixes, stable</td>
 <td>Jean-Baptiste Maneyrol</td>
-<td><a href="https://lore.kernel.org/all/20261011045710.357809-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&amp;id=3a5e2ca34cadd9d5993064884aa5b9c4f6d71dff">commit</a></td>
+<td><a href="https://lore.kernel.org/all/20261011045710.357809-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=3a5e2ca34cadd9d5993064884aa5b9c4f6d71dff">commit</a></td>
 </tr>
 <tr class="even">
 <td>cros_ec_sensors: sensor_scale for CALIBSCALE</td>
 <td>iio fixes</td>
 <td>Joshua Crofts, Tzung-Bi Shih</td>
-<td><a href="https://lore.kernel.org/all/20261011045410.356156-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=fixes-togreg&amp;id=0f8945d5da179594ed7ba058eeb363964438d2d7">commit</a></td>
+<td><a href="https://lore.kernel.org/all/20261011045410.356156-1-kapoorarnav43@gmail.com/">lore</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=0f8945d5da179594ed7ba058eeb363964438d2d7">commit</a></td>
 </tr>
 <tr class="odd">
 <td>sfc: fix stale kernel-doc in net_driver.h</td>
