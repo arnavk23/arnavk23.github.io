@@ -33,6 +33,7 @@ merged from here on: a short entry for each one, and a row in the
 | iio: proximity: sx9360: keep the IRQ balanced across suspend and resume | iio (`testing`) | [v1](https://lore.kernel.org/all/20261026100322.16720-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261026112342.65917-1-kapoorarnav43@gmail.com/) · [v3](https://lore.kernel.org/all/20261028220444.70121-1-kapoorarnav43@gmail.com/) · [v4](https://lore.kernel.org/all/20261101102518.22757-1-kapoorarnav43@gmail.com/) · [v5](https://lore.kernel.org/all/20261114073601.23404-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&id=f2cbef9101b9fc979a324bb1242b8b802a2484b6) |
 | ASoC: SOF: control: reject out-of-range enum values | sound (broonie `for-7.4`) | [v1](https://lore.kernel.org/all/20261117105953.188645-1-kapoorarnav43@gmail.com/) · [v2](https://lore.kernel.org/all/20261118103129.113970-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound.git/commit/?h=for-7.4&id=3092b9e481fedc413bf7acda9edc04b0bd8cb28a) |
 | ALSA: hda: reject invalid values in the IEC958 switch put callbacks | sound (`for-next`) | [v1](https://lore.kernel.org/all/20261123170203.243633-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound.git/commit/?h=for-next&id=c871dbdeacfbb8a48d90406b8a96f3c41c3924b5) |
+| iio: imu: inv_mpu6050: use named initializers for temp in hw_info[] | iio (`testing`) | [v1](https://lore.kernel.org/all/20261018000924.758186-1-kapoorarnav43@gmail.com/) · [commit](https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&id=39508411b82d4dc29dd245bb471ec9ecc1111c9d) |
 
 : Patches applied since the mentorship. {#tbl-results}
 
@@ -364,5 +365,33 @@ Takashi applied v1 the next day.
 
 **Lesson.** When one callback in a file already validates its input, check its
 neighbours: the same bug is often sitting right next to it.
+
+## inv_mpu6050: naming the temperature fields
+
+*iio `testing`, applied by Jonathan Cameron on 26 November 2026. Suggested by Jonathan.*
+
+**Change.** Every entry of `hw_info[]` set its temperature calibration positionally, as
+`{ *_TEMP_OFFSET, *_TEMP_SCALE }`. The order was right, but positional initializers like
+these are how the accel and gyro startup times in the same table ended up swapped, which
+was one of my earlier fixes. This patch names each field, as `startup_time` already does:
+
+```c
+		.temp = {
+			.offset = INV_MPU6500_TEMP_OFFSET,
+			.scale = INV_MPU6500_TEMP_SCALE,
+		},
+```
+
+No functional change.
+
+**Review.** Joshua Crofts reported that the patch didn't apply. It was based on
+`fixes-togreg`, on top of the startup-time fix, which `togreg` and `testing` didn't have
+yet, and I hadn't said so. Andy Shevchenko's advice was to use `--base` with
+`git format-patch`. Jonathan held the patch in patchwork instead of asking for a resend,
+and applied it a month later, once he had merged 7.4-rc4 and the fix into his tree.
+
+**Lesson.** When a patch depends on a fix that isn't in the target branch yet, say so
+below the `---` and record the base commit, so reviewers don't have to guess why it
+doesn't apply.
 
 *Cover: Tux, by Larry Ewing, created with The GIMP.*

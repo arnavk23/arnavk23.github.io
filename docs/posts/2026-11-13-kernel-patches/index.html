@@ -365,6 +365,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#sx93xx-an-interrupt-left-off-after-a-failed-suspend" id="toc-sx93xx-an-interrupt-left-off-after-a-failed-suspend" class="nav-link" data-scroll-target="#sx93xx-an-interrupt-left-off-after-a-failed-suspend">sx93xx: an interrupt left off after a failed suspend</a></li>
   <li><a href="#sof-enum-items-past-the-end-of-the-list" id="toc-sof-enum-items-past-the-end-of-the-list" class="nav-link" data-scroll-target="#sof-enum-items-past-the-end-of-the-list">SOF: enum items past the end of the list</a></li>
   <li><a href="#hda-iec958-switches-that-took-any-value" id="toc-hda-iec958-switches-that-took-any-value" class="nav-link" data-scroll-target="#hda-iec958-switches-that-took-any-value">HDA: IEC958 switches that took any value</a></li>
+  <li><a href="#inv_mpu6050-naming-the-temperature-fields" id="toc-inv_mpu6050-naming-the-temperature-fields" class="nav-link" data-scroll-target="#inv_mpu6050-naming-the-temperature-fields">inv_mpu6050: naming the temperature fields</a></li>
   </ul>
 </nav>
     </div>
@@ -502,6 +503,11 @@ Table&nbsp;1: Patches applied since the mentorship.
 <td>ALSA: hda: reject invalid values in the IEC958 switch put callbacks</td>
 <td>sound (<code>for-next</code>)</td>
 <td><a href="https://lore.kernel.org/all/20261123170203.243633-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound.git/commit/?h=for-next&amp;id=c871dbdeacfbb8a48d90406b8a96f3c41c3924b5">commit</a></td>
+</tr>
+<tr class="odd">
+<td>iio: imu: inv_mpu6050: use named initializers for temp in hw_info[]</td>
+<td>iio (<code>testing</code>)</td>
+<td><a href="https://lore.kernel.org/all/20261018000924.758186-1-kapoorarnav43@gmail.com/">v1</a> · <a href="https://git.kernel.org/pub/scm/linux/kernel/git/jic23/iio.git/commit/?h=testing&amp;id=39508411b82d4dc29dd245bb471ec9ecc1111c9d">commit</a></td>
 </tr>
 </tbody>
 </table>
@@ -653,6 +659,18 @@ Table&nbsp;1: Patches applied since the mentorship.
 <p>I tested it on my laptop’s three HDMI “IEC958 Playback Switch” controls with raw <code>SNDRV_CTL_IOCTL_ELEM_WRITE</code> calls: all nine invalid writes failed with <code>-EINVAL</code> and left the value unchanged, while 0 and 1 still worked. The S/PDIF in and shared switches don’t exist on this machine, so those two hunks were only build-tested.</p>
 <p><strong>Review.</strong> HyeongJun An repeated the test on a Dell Latitude 9420 and gave a Tested-by. Takashi applied v1 the next day.</p>
 <p><strong>Lesson.</strong> When one callback in a file already validates its input, check its neighbours: the same bug is often sitting right next to it.</p>
+</section>
+<section id="inv_mpu6050-naming-the-temperature-fields" class="level2">
+<h2 class="anchored" data-anchor-id="inv_mpu6050-naming-the-temperature-fields">inv_mpu6050: naming the temperature fields</h2>
+<p><em>iio <code>testing</code>, applied by Jonathan Cameron on 26 November 2026. Suggested by Jonathan.</em></p>
+<p><strong>Change.</strong> Every entry of <code>hw_info[]</code> set its temperature calibration positionally, as <code>{ *_TEMP_OFFSET, *_TEMP_SCALE }</code>. The order was right, but positional initializers like these are how the accel and gyro startup times in the same table ended up swapped, which was one of my earlier fixes. This patch names each field, as <code>startup_time</code> already does:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span>temp <span class="op">=</span> <span class="op">{</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span>offset <span class="op">=</span> INV_MPU6500_TEMP_OFFSET<span class="op">,</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span>scale <span class="op">=</span> INV_MPU6500_TEMP_SCALE<span class="op">,</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>        <span class="op">},</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>No functional change.</p>
+<p><strong>Review.</strong> Joshua Crofts reported that the patch didn’t apply. It was based on <code>fixes-togreg</code>, on top of the startup-time fix, which <code>togreg</code> and <code>testing</code> didn’t have yet, and I hadn’t said so. Andy Shevchenko’s advice was to use <code>--base</code> with <code>git format-patch</code>. Jonathan held the patch in patchwork instead of asking for a resend, and applied it a month later, once he had merged 7.4-rc4 and the fix into his tree.</p>
+<p><strong>Lesson.</strong> When a patch depends on a fix that isn’t in the target branch yet, say so below the <code>---</code> and record the base commit, so reviewers don’t have to guess why it doesn’t apply.</p>
 <p><em>Cover: Tux, by Larry Ewing, created with The GIMP.</em></p>
 
 
