@@ -1,0 +1,18 @@
+---
+title: "Publications"
+---
+
+## Published
+
+None yet.
+
+## Accepted
+
+None yet.
+
+## Submitted
+
+**Does a Learned Task-Conditioned Initializer Beat Simple Parameter Transfer?**<br>
+Arnav Kapoor and Junyong Lee.<br>
+Submitted to the QC+AI 2027 workshop (Quantum Computing and Artificial Intelligence),
+November 2026. Code: [qmaml-hep](https://github.com/arnavk23/qmaml-hep).

@@ -2,15 +2,19 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://arnavk23.github.io/experience.html</loc>
-    <lastmod>2026-11-07T21:15:07.831Z</lastmod>
+    <lastmod>2026-11-27T20:40:48.123Z</lastmod>
   </url>
   <url>
     <loc>https://arnavk23.github.io/recommendations.html</loc>
     <lastmod>2026-10-21T20:02:29.932Z</lastmod>
   </url>
   <url>
-    <loc>https://arnavk23.github.io/posts/2026-10-26-sx93xx-fixes/index.html</loc>
-    <lastmod>2026-11-25T13:21:43.171Z</lastmod>
+    <loc>https://arnavk23.github.io/software.html</loc>
+    <lastmod>2026-11-27T20:34:49.042Z</lastmod>
+  </url>
+  <url>
+    <loc>https://arnavk23.github.io/posts/2026-10-22-lfx-kernel-mentorship/index.html</loc>
+    <lastmod>2026-11-25T13:21:43.172Z</lastmod>
   </url>
   <url>
     <loc>https://arnavk23.github.io/index.html</loc>
@@ -33,19 +37,19 @@
     <lastmod>2026-10-21T20:02:09.524Z</lastmod>
   </url>
   <url>
-    <loc>https://arnavk23.github.io/posts/2026-10-22-lfx-kernel-mentorship/index.html</loc>
-    <lastmod>2026-11-25T13:21:43.172Z</lastmod>
+    <loc>https://arnavk23.github.io/posts/2026-11-13-kernel-patches/index.html</loc>
+    <lastmod>2026-11-26T07:25:53.735Z</lastmod>
   </url>
   <url>
-    <loc>https://arnavk23.github.io/software.html</loc>
-    <lastmod>2026-10-21T19:49:08.545Z</lastmod>
+    <loc>https://arnavk23.github.io/posts/2026-10-26-sx93xx-fixes/index.html</loc>
+    <lastmod>2026-11-25T13:21:43.171Z</lastmod>
+  </url>
+  <url>
+    <loc>https://arnavk23.github.io/publications.html</loc>
+    <lastmod>2026-11-27T20:40:48.150Z</lastmod>
   </url>
   <url>
     <loc>https://arnavk23.github.io/blogs.html</loc>
     <lastmod>2026-11-06T23:15:04.889Z</lastmod>
-  </url>
-  <url>
-    <loc>https://arnavk23.github.io/posts/2026-11-13-kernel-patches/index.html</loc>
-    <lastmod>2026-11-26T07:25:53.735Z</lastmod>
   </url>
 </urlset>

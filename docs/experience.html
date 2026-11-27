@@ -271,6 +271,10 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text">Experience</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="./publications.html"> 
+<span class="menu-text">Publications</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link" href="./software.html"> 
 <span class="menu-text">Software</span></a>
   </li>  
@@ -317,10 +321,7 @@ ul.task-list li input[type="checkbox"] {
    
   <ul>
   <li><a href="#summer-research-intern-quantum-convolutional-codes" id="toc-summer-research-intern-quantum-convolutional-codes" class="nav-link active" data-scroll-target="#summer-research-intern-quantum-convolutional-codes">Summer Research Intern, Quantum Convolutional Codes</a></li>
-  <li><a href="#research-collaborator-ncl.jl" id="toc-research-collaborator-ncl.jl" class="nav-link" data-scroll-target="#research-collaborator-ncl.jl">Research Collaborator, NCL.jl</a></li>
   <li><a href="#research-intern-juliasmoothoptimizers" id="toc-research-intern-juliasmoothoptimizers" class="nav-link" data-scroll-target="#research-intern-juliasmoothoptimizers">Research Intern, JuliaSmoothOptimizers</a></li>
-  <li><a href="#research-contributor-q-maml-for-hep-at-the-lhc" id="toc-research-contributor-q-maml-for-hep-at-the-lhc" class="nav-link" data-scroll-target="#research-contributor-q-maml-for-hep-at-the-lhc">Research Contributor, Q-MAML for HEP at the LHC</a></li>
-  <li><a href="#qintern-qiopt4qnet" id="toc-qintern-qiopt4qnet" class="nav-link" data-scroll-target="#qintern-qiopt4qnet">QIntern, QiOpt4QNet</a></li>
   <li><a href="#summer-research-intern-quantum-fisher-information" id="toc-summer-research-intern-quantum-fisher-information" class="nav-link" data-scroll-target="#summer-research-intern-quantum-fisher-information">Summer Research Intern, Quantum Fisher Information</a></li>
   <li><a href="#lfx-mentee-linux-kernel" id="toc-lfx-mentee-linux-kernel" class="nav-link" data-scroll-target="#lfx-mentee-linux-kernel">LFX Mentee, Linux Kernel</a></li>
   </ul>
@@ -360,28 +361,11 @@ ul.task-list li input[type="checkbox"] {
 <li>Open-source tools for quantum error correction in Julia</li>
 </ul>
 </section>
-<section id="research-collaborator-ncl.jl" class="level2">
-<h2 class="anchored" data-anchor-id="research-collaborator-ncl.jl">Research Collaborator, NCL.jl</h2>
-<p><strong>Polytechnique Montréal</strong></p>
-<p><a href="https://github.com/JuliaSmoothOptimizers/NCL.jl">NCL.jl</a> implements a stabilized augmented-Lagrangian method that reformulates LANCELOT-style subproblems as a short sequence of nonlinearly constrained problems regularized by residual variables. This makes it reliable on large problems that violate the LICQ. I work on its interior-point subsolver integrations (IPOPT, MadNLP and Knitro) and its benchmarks.</p>
-</section>
 <section id="research-intern-juliasmoothoptimizers" class="level2">
 <h2 class="anchored" data-anchor-id="research-intern-juliasmoothoptimizers">Research Intern, JuliaSmoothOptimizers</h2>
 <p><strong>Polytechnique Montréal</strong></p>
 <p>Advisor: Prof.&nbsp;Dominique Orban (Department of Applied Mathematics).</p>
 <p>Translated classical optimization problems into JuMP and ADNLPModels for <a href="https://github.com/JuliaSmoothOptimizers/OptimizationProblems.jl">OptimizationProblems.jl</a>, documented their mathematical formulations and the contributing guidelines, and added dimension-modification warnings, type corrections and tests. Contributed pull requests across the JSO ecosystem.</p>
-</section>
-<section id="research-contributor-q-maml-for-hep-at-the-lhc" class="level2">
-<h2 class="anchored" data-anchor-id="research-contributor-q-maml-for-hep-at-the-lhc">Research Contributor, Q-MAML for HEP at the LHC</h2>
-<p><strong>Machine Learning for Science (ML4SCI)</strong></p>
-<p>Advisor: Junyong Lee (Yonsei University).</p>
-<p>Q-MAML (Quantum Model-Agnostic Meta-Learning) uses a classical “Learner” network to predict initial parameters for variational quantum circuits. Applied to HIGGS and quark–gluon jet classification, it gave statistically significant accuracy gains over classical initialization at every qubit count tested. I am now benchmarking it on ten HEP lattice Hamiltonians, including the Schwinger model, lattice gauge theories, scalar field theory and light-nuclei EFT.</p>
-</section>
-<section id="qintern-qiopt4qnet" class="level2">
-<h2 class="anchored" data-anchor-id="qintern-qiopt4qnet">QIntern, QiOpt4QNet</h2>
-<p><strong>QWorld</strong></p>
-<p>Mentors: Krishna Bhatia and Shalini Devendrababu.</p>
-<p>Hybrid quantum-inspired optimization for fidelity-constrained entanglement routing and memory scheduling in quantum networks (project Q23, presented at the QIntern Workshop). See <a href="./software.html#qiopt4qnet-simulator">QiOpt4QNet-Simulator</a>.</p>
 </section>
 <section id="summer-research-intern-quantum-fisher-information" class="level2">
 <h2 class="anchored" data-anchor-id="summer-research-intern-quantum-fisher-information">Summer Research Intern, Quantum Fisher Information</h2>
@@ -392,7 +376,7 @@ ul.task-list li input[type="checkbox"] {
 <section id="lfx-mentee-linux-kernel" class="level2">
 <h2 class="anchored" data-anchor-id="lfx-mentee-linux-kernel">LFX Mentee, Linux Kernel</h2>
 <p><strong>The Linux Foundation</strong></p>
-<p>Linux Kernel Bug Fixing Mentorship with Shuah Khan. Fifteen patches applied upstream in the IIO subsystem and in networking (sfc). The most recent six fix bugs in the Semtech SX9xxx proximity drivers, the MCP3564 ADC and the IIO core’s number parser (<a href="./posts/2026-10-26-sx93xx-fixes/index.html">blog post</a>). The first nine, including fixes for truncated 64-bit divisions in scmi_sensors and for wrong magnetometer scales and swapped startup times in inv_mpu6050, are covered in <a href="./posts/2026-10-22-lfx-kernel-mentorship/index.html">an earlier post</a>.</p>
+<p>Linux Kernel Bug Fixing Mentorship with Shuah Khan. Thirty patches applied upstream so far. Fifteen came during the mentorship, in the IIO subsystem and in networking (sfc): the most recent six fix bugs in the Semtech SX9xxx proximity drivers, the MCP3564 ADC and the IIO core’s number parser (<a href="./posts/2026-10-26-sx93xx-fixes/index.html">blog post</a>), and the first nine, including fixes for truncated 64-bit divisions in scmi_sensors and for wrong magnetometer scales and swapped startup times in inv_mpu6050, are covered in <a href="./posts/2026-10-22-lfx-kernel-mentorship/index.html">an earlier post</a>. Fifteen more have been applied since, across IIO, networking (vmxnet3), ALSA and ASoC sound, and platform/x86, several of them tested on my own laptop (<a href="./posts/2026-11-13-kernel-patches/index.html">running log</a>).</p>
 
 
 </section>

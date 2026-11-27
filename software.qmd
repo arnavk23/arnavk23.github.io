@@ -16,29 +16,15 @@ integrations optional package extensions, added support for maximization problem
 Julia LTS, made NCL declare infeasibility at the maximum penalty, and tuned how barrier
 parameters are passed to MadNLP and Knitro.
 
-## [Qiskit.jl](https://github.com/Qiskit/Qiskit.jl)
+## [JuliaNeutrino](https://github.com/JuliaNeutrino)
 
-Julia bindings for [Qiskit](https://www.ibm.com/quantum/qiskit) through its C API.
-I added a `TranspileOptions` wrapper, `add_instruction` and `add_property` on `Target`,
-a `delay` method on `QuantumCircuit` with [Unitful.jl](https://github.com/PainterQubits/Unitful.jl)
-units, readable `show` methods for wrapped C objects, and minimum-version testing of
-dependencies, and fixed memory cleanup in `count_ops`.
-
-## [TagBot](https://github.com/JuliaRegistries/TagBot)
-
-The GitHub Action that creates tags, releases and changelogs for Julia packages when
-they are registered, used across the Julia ecosystem. I have had over 20 pull requests
-merged, including changelog support for backport and yanked releases, a
-`changelog_format` option, correct handling of Registrator branches and subdirectory
-packages, case-insensitive registry lookups, and clearer error handling for rate limits,
-permissions and malformed TOML.
-
-## [QiOpt4QNet-Simulator](https://github.com/Sguy1908/QiOpt4QNet-Simulator)
-
-A quantum-network simulation and optimization framework. It models repeater networks with
-limited quantum memory and noisy links, builds candidate route and purification bundles
-for service requests, and compares exact MILP, QUBO and quantum annealing,
-tensor-network and classical heuristic solvers for admitting them. I am the top
-contributor: I added the Metropolis annealer and tensor-network optimizer, a
-conflict-aware purification scheduler, joint scheduling, adaptive-QUBO and GNN
-extensions, and the CI setup.
+A GitHub organization I created for neutrino physics in Julia. Its core is
+[GLoBES.jl](https://github.com/JuliaNeutrino/GLoBES.jl), a Julia implementation of
+[GLoBES](https://www.mpi-hd.mpg.de/personalhomes/globes/), the General Long Baseline
+Experiment Simulator for neutrino oscillation experiments. Around it sit
+[SNOwGLoBES.jl](https://github.com/JuliaNeutrino/SNOwGLoBES.jl) and
+[SupernovaNeutrinos.jl](https://github.com/JuliaNeutrino/SupernovaNeutrinos.jl), Julia ports
+of SNOwGLoBES and SNEWPY for supernova neutrino models, flavor transformations and event
+rates, and new-physics extensions for scalar and vector non-standard interactions,
+environmental decoherence and neutrino mass models. Each package has a Colab notebook
+that runs it end to end.

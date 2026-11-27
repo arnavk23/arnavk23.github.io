@@ -13,16 +13,6 @@ Advisors: Dr. Filip Rozpedek and Dr. Stefan Krastanov.
 - Simulation of quantum repeater protocols under realistic noisy hardware
 - Open-source tools for quantum error correction in Julia
 
-## Research Collaborator, NCL.jl
-
-**Polytechnique Montréal**
-
-[NCL.jl](https://github.com/JuliaSmoothOptimizers/NCL.jl) implements a stabilized
-augmented-Lagrangian method that reformulates LANCELOT-style subproblems as a short
-sequence of nonlinearly constrained problems regularized by residual variables. This
-makes it reliable on large problems that violate the LICQ. I work on its interior-point
-subsolver integrations (IPOPT, MadNLP and Knitro) and its benchmarks.
-
 ## Research Intern, JuliaSmoothOptimizers
 
 **Polytechnique Montréal**
@@ -34,29 +24,6 @@ Translated classical optimization problems into JuMP and ADNLPModels for
 documented their mathematical formulations and the contributing guidelines, and added
 dimension-modification warnings, type corrections and tests. Contributed pull requests
 across the JSO ecosystem.
-
-## Research Contributor, Q-MAML for HEP at the LHC
-
-**Machine Learning for Science (ML4SCI)**
-
-Advisor: Junyong Lee (Yonsei University).
-
-Q-MAML (Quantum Model-Agnostic Meta-Learning) uses a classical "Learner" network to
-predict initial parameters for variational quantum circuits. Applied to HIGGS and
-quark–gluon jet classification, it gave statistically significant accuracy gains over
-classical initialization at every qubit count tested. I am now benchmarking it on ten
-HEP lattice Hamiltonians, including the Schwinger model, lattice gauge theories,
-scalar field theory and light-nuclei EFT.
-
-## QIntern, QiOpt4QNet
-
-**QWorld**
-
-Mentors: Krishna Bhatia and Shalini Devendrababu.
-
-Hybrid quantum-inspired optimization for fidelity-constrained entanglement routing and
-memory scheduling in quantum networks (project Q23, presented at the QIntern Workshop).
-See [QiOpt4QNet-Simulator](software.qmd#qiopt4qnet-simulator).
 
 ## Summer Research Intern, Quantum Fisher Information
 
@@ -72,10 +39,13 @@ non-standard interactions.
 
 **The Linux Foundation**
 
-Linux Kernel Bug Fixing Mentorship with Shuah Khan. Fifteen patches applied upstream in
-the IIO subsystem and in networking (sfc). The most recent six fix bugs in the Semtech
-SX9xxx proximity drivers, the MCP3564 ADC and the IIO core's number parser
-([blog post](posts/2026-10-26-sx93xx-fixes/index.qmd)). The first nine, including fixes
-for truncated 64-bit divisions in scmi_sensors and for wrong magnetometer scales and
-swapped startup times in inv_mpu6050, are covered in
-[an earlier post](posts/2026-10-22-lfx-kernel-mentorship/index.qmd).
+Linux Kernel Bug Fixing Mentorship with Shuah Khan. Thirty patches applied upstream so
+far. Fifteen came during the mentorship, in the IIO subsystem and in networking (sfc):
+the most recent six fix bugs in the Semtech SX9xxx proximity drivers, the MCP3564 ADC
+and the IIO core's number parser ([blog post](posts/2026-10-26-sx93xx-fixes/index.qmd)),
+and the first nine, including fixes for truncated 64-bit divisions in scmi_sensors and
+for wrong magnetometer scales and swapped startup times in inv_mpu6050, are covered in
+[an earlier post](posts/2026-10-22-lfx-kernel-mentorship/index.qmd). Fifteen more have
+been applied since, across IIO, networking (vmxnet3), ALSA and ASoC sound, and
+platform/x86, several of them tested on my own laptop
+([running log](posts/2026-11-13-kernel-patches/index.qmd)).

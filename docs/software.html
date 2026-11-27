@@ -271,6 +271,10 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text">Experience</span></a>
   </li>  
   <li class="nav-item">
+    <a class="nav-link" href="./publications.html"> 
+<span class="menu-text">Publications</span></a>
+  </li>  
+  <li class="nav-item">
     <a class="nav-link active" href="./software.html" aria-current="page"> 
 <span class="menu-text">Software</span></a>
   </li>  
@@ -317,9 +321,7 @@ ul.task-list li input[type="checkbox"] {
    
   <ul>
   <li><a href="#ncl.jl" id="toc-ncl.jl" class="nav-link active" data-scroll-target="#ncl.jl">NCL.jl</a></li>
-  <li><a href="#qiskit.jl" id="toc-qiskit.jl" class="nav-link" data-scroll-target="#qiskit.jl">Qiskit.jl</a></li>
-  <li><a href="#tagbot" id="toc-tagbot" class="nav-link" data-scroll-target="#tagbot">TagBot</a></li>
-  <li><a href="#qiopt4qnet-simulator" id="toc-qiopt4qnet-simulator" class="nav-link" data-scroll-target="#qiopt4qnet-simulator">QiOpt4QNet-Simulator</a></li>
+  <li><a href="#julianeutrino" id="toc-julianeutrino" class="nav-link" data-scroll-target="#julianeutrino">JuliaNeutrino</a></li>
   </ul>
 </nav>
     </div>
@@ -351,17 +353,9 @@ ul.task-list li input[type="checkbox"] {
 <h2 class="anchored" data-anchor-id="ncl.jl"><a href="https://github.com/JuliaSmoothOptimizers/NCL.jl">NCL.jl</a></h2>
 <p>A pure-Julia implementation of <a href="https://doi.org/10.1007/978-3-319-90026-1_8">Algorithm NCL</a> (Ma, Judd, Orban and Saunders) for nonlinearly constrained optimization, part of the <a href="https://jso.dev">JuliaSmoothOptimizers</a> ecosystem. NCL is a stabilized augmented-Lagrangian method that solves a short sequence of subproblems regularized by residual variables, which keeps it reliable on problems that violate the LICQ. Its subproblems are solved by interior-point methods such as IPOPT, Artelys Knitro and MadNLP. I made the solver integrations optional package extensions, added support for maximization problems and Julia LTS, made NCL declare infeasibility at the maximum penalty, and tuned how barrier parameters are passed to MadNLP and Knitro.</p>
 </section>
-<section id="qiskit.jl" class="level2">
-<h2 class="anchored" data-anchor-id="qiskit.jl"><a href="https://github.com/Qiskit/Qiskit.jl">Qiskit.jl</a></h2>
-<p>Julia bindings for <a href="https://www.ibm.com/quantum/qiskit">Qiskit</a> through its C API. I added a <code>TranspileOptions</code> wrapper, <code>add_instruction</code> and <code>add_property</code> on <code>Target</code>, a <code>delay</code> method on <code>QuantumCircuit</code> with <a href="https://github.com/PainterQubits/Unitful.jl">Unitful.jl</a> units, readable <code>show</code> methods for wrapped C objects, and minimum-version testing of dependencies, and fixed memory cleanup in <code>count_ops</code>.</p>
-</section>
-<section id="tagbot" class="level2">
-<h2 class="anchored" data-anchor-id="tagbot"><a href="https://github.com/JuliaRegistries/TagBot">TagBot</a></h2>
-<p>The GitHub Action that creates tags, releases and changelogs for Julia packages when they are registered, used across the Julia ecosystem. I have had over 20 pull requests merged, including changelog support for backport and yanked releases, a <code>changelog_format</code> option, correct handling of Registrator branches and subdirectory packages, case-insensitive registry lookups, and clearer error handling for rate limits, permissions and malformed TOML.</p>
-</section>
-<section id="qiopt4qnet-simulator" class="level2">
-<h2 class="anchored" data-anchor-id="qiopt4qnet-simulator"><a href="https://github.com/Sguy1908/QiOpt4QNet-Simulator">QiOpt4QNet-Simulator</a></h2>
-<p>A quantum-network simulation and optimization framework. It models repeater networks with limited quantum memory and noisy links, builds candidate route and purification bundles for service requests, and compares exact MILP, QUBO and quantum annealing, tensor-network and classical heuristic solvers for admitting them. I am the top contributor: I added the Metropolis annealer and tensor-network optimizer, a conflict-aware purification scheduler, joint scheduling, adaptive-QUBO and GNN extensions, and the CI setup.</p>
+<section id="julianeutrino" class="level2">
+<h2 class="anchored" data-anchor-id="julianeutrino"><a href="https://github.com/JuliaNeutrino">JuliaNeutrino</a></h2>
+<p>A GitHub organization I created for neutrino physics in Julia. Its core is <a href="https://github.com/JuliaNeutrino/GLoBES.jl">GLoBES.jl</a>, a Julia implementation of <a href="https://www.mpi-hd.mpg.de/personalhomes/globes/">GLoBES</a>, the General Long Baseline Experiment Simulator for neutrino oscillation experiments. Around it sit <a href="https://github.com/JuliaNeutrino/SNOwGLoBES.jl">SNOwGLoBES.jl</a> and <a href="https://github.com/JuliaNeutrino/SupernovaNeutrinos.jl">SupernovaNeutrinos.jl</a>, Julia ports of SNOwGLoBES and SNEWPY for supernova neutrino models, flavor transformations and event rates, and new-physics extensions for scalar and vector non-standard interactions, environmental decoherence and neutrino mass models. Each package has a Colab notebook that runs it end to end.</p>
 
 
 </section>
